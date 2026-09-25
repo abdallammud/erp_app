@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module: Programs, Grants &amp; M&amp;E — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html" class="active">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Module 4 of 4</span>
+<h1>Programs, Grants &amp; M&amp;E</h1>
+<p class="lede">The reason the organization exists — projects, the people they serve, and proof to donors that the work happened and mattered. The WARDI ToR calls this "Programs / Project Management"; the generic proposal calls it "Beneficiary &amp; Project Management" — this plan merges both views into one module.</p>
+
+<div class="callout callout-info">
+<strong class="label">Scope note</strong>
+<p>This module tracks beneficiaries, distributions, activities, and indicators at the level needed for program management and donor reporting. It is not a clinical case-management system — see <a href="01-vision-and-scope.html">Vision &amp; Scope → out of scope</a>.</p>
+</div>
+
+<h2>Sub-modules</h2>
+
+<h3>A. Project / Grant Lifecycle Management</h3>
+<ul>
+<li>Project record per grant/award: donor, budget envelope (linked to Finance's cost centers), start/end dates, sectors covered, geographic scope</li>
+<li>Project status lifecycle (planning → active → closing → closed) with budget and reporting obligations tracked per stage</li>
+</ul>
+
+<h3>B. Activity Planning &amp; Tracking</h3>
+<ul>
+<li>Activity plan per project, aligned to a results framework (outputs/outcomes)</li>
+<li>Activity status and completion tracking against plan</li>
+</ul>
+
+<h3>C. Beneficiary Registration</h3>
+<ul>
+<li>Individual and household registration, with a unique beneficiary ID to prevent duplicate registration across projects</li>
+<li>Vulnerability scoring/criteria per project's targeting methodology</li>
+<li>Geo-location tagging for coverage mapping</li>
+<li>Designed to be biometric-integration-ready without requiring it in Phase 1 (see <a href="01-vision-and-scope.html">Vision &amp; Scope</a>)</li>
+</ul>
+
+<h3>D. Sector-Specific Tracking</h3>
+<p>Configurable by tenant to match the sectors it actually works in (WARDI, for example, operates in health &amp; nutrition, food security &amp; livelihoods, education, protection, and WASH):</p>
+<ul>
+<li>Nutrition tracking</li>
+<li>Health tracking</li>
+<li>Food Security &amp; Livelihoods (FSL) support tracking</li>
+<li>Protection case tracking (program-level, not the HR safeguarding case module — see <a href="04-module-hrm.html#safeguarding">HRM → Safeguarding</a> for staff/organizational conduct cases)</li>
+<li>Education support tracking</li>
+<li>WASH tracking</li>
+</ul>
+
+<h3>E. Distribution Management</h3>
+<ul>
+<li>Cash transfer tracking</li>
+<li>Food distribution tracking</li>
+<li>Non-food item (NFI) distribution tracking</li>
+<li>Attendance sheet generation/export for distribution events</li>
+<li>Draws distributed items from warehouse stock in <a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a>, so inventory depletion and distribution records stay in sync automatically</li>
+</ul>
+
+<h3>F. Indicators &amp; Monitoring &amp; Evaluation</h3>
+<ul>
+<li>Indicator tracking system aligned to each project's results framework</li>
+<li>Target vs. achievement monitoring</li>
+<li>Outcome measurement</li>
+<li>Indicator dashboards, filterable by project, donor, sector, and period</li>
+</ul>
+
+<h3>G. Donor Reporting</h3>
+<ul>
+<li>Budget utilization tracking (pulled from Finance's project financial report, not re-entered)</li>
+<li>Donor reporting dashboards with narrative-report support data — the numbers and disaggregations a program officer needs when writing the narrative, not the narrative text itself</li>
+<li>Gender and geographic disaggregation on beneficiary and indicator reports</li>
+<li>Data export (Excel, CSV, PDF) for all program reports</li>
+</ul>
+
+<h2>Key integration points</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>With</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Finance</td><td>Every project here corresponds to a budget envelope and cost center there; budget utilization is read from Finance, not duplicated.</td></tr>
+<tr><td>HRM</td><td>Staff are assigned to projects (via HRM's project allocation/cost-split), so "who's working on this grant" is answered from the employee record, not a separate program roster.</td></tr>
+<tr><td>Procurement &amp; Logistics</td><td>Distributions consume warehouse stock; procurement plans should be informed by project activity plans.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="data-entities">Data entities specific to Programs</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Entity</th><th>Key attributes</th></tr></thead>
+<tbody>
+<tr><td>Project / Grant</td><td>donor, budget link, dates, sectors, status</td></tr>
+<tr><td>Activity</td><td>project link, plan vs. actual, output/outcome mapping</td></tr>
+<tr><td>Beneficiary / Household</td><td>unique ID, demographic data, vulnerability score, geo-location</td></tr>
+<tr><td>Distribution Event</td><td>project, type (cash/food/NFI), beneficiary list, stock items drawn, attendance</td></tr>
+<tr><td>Indicator / Indicator Result</td><td>project, definition, target, achieved-to-date, disaggregation</td></tr>
+<tr><td>Sector Record</td><td>configurable per-sector tracking (nutrition, health, FSL, protection, education, WASH)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="06-module-procurement-logistics.html"><span class="dir">Back</span>Module: Procurement &amp; Logistics</a>
+  <a class="next" href="08-data-model.html"><span class="dir">Next</span>Data Model →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

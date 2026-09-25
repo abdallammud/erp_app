@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture &amp; Multi-Tenancy — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html" class="active">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">02 · Overview</span>
+<h1>Architecture &amp; Multi-Tenancy</h1>
+<p class="lede">How one Laravel codebase serves many independent NGOs, and the technical decisions that follow from that.</p>
+
+<h2>Multi-tenancy model</h2>
+<p>None of the source documents address this — each was written as if the system serves one organization. This is the plan's central addition.</p>
+
+<h3>Recommendation: shared database, row-level isolation</h3>
+<p>Every tenant-scoped table carries a <code>tenant_id</code> (the NGO/organization). A global scope enforces that every query is automatically filtered to the current tenant — application code never has to remember to add the filter, and it becomes structurally hard to leak one NGO's data into another's view.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Model</th><th>Pros</th><th>Cons</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><strong>Shared DB, <code>tenant_id</code> column</strong> (recommended)</td><td>Cheapest to run and operate; one set of migrations; easiest cross-tenant platform analytics for the operator.</td><td>Requires strict discipline (global scopes, tests) to prevent data leakage; noisy-neighbor risk at very large scale.</td><td>Default for all tenants.</td></tr>
+<tr><td>Database-per-tenant</td><td>Strongest isolation; simple to reason about; easy full data export/deletion on offboarding.</td><td>Migration fan-out (every schema change runs N times); higher hosting cost; harder platform-wide reporting.</td><td>Reserve for a large enterprise NGO that contractually requires dedicated data residency/isolation — supported as an escape hatch, not the default.</td></tr>
+<tr><td>Schema-per-tenant</td><td>Middle ground on isolation.</td><td>Poor fit for MySQL (Laravel's typical default); adds ops complexity for little real benefit over row-level scoping.</td><td>Not recommended.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-info">
+<strong class="label">Laravel implementation note</strong>
+<p>Implement as a <code>BelongsToTenant</code> trait + global scope on every tenant-scoped Eloquent model, tenant resolved from the authenticated user's session (not from subdomain alone, to keep local/offline field use simple) and mirrored to a tenant-aware queue connection so background jobs (payroll runs, report generation) stay scoped correctly. A package such as <code>stancl/tenancy</code> can accelerate this, but a lean custom implementation is defensible given the moderate tenant count expected (dozens of NGOs, not thousands).</p>
+</div>
+
+<h3>What "tenant" actually contains</h3>
+<ul>
+<li><strong>Organization profile</strong> — name, logo, registration details, country/countries of operation, default currency, fiscal year.</li>
+<li><strong>Org structure</strong> — departments, duty stations/offices, positions, reporting lines.</li>
+<li><strong>Policy configuration</strong> — leave types &amp; accrual rules, salary grades, tax grids per country, approval workflow chains, safeguarding policy text.</li>
+<li><strong>Reference data</strong> — donors, projects/grants, cost centers, chart of accounts, supplier list.</li>
+<li><strong>Users &amp; roles</strong> — every login belongs to exactly one tenant (a consultant working across two NGOs gets two separate accounts, not a shared one — keeps audit trails and payroll unambiguous).</li>
+</ul>
+<p>A <strong>Platform / Super Admin</strong> role sits outside all tenants: it can create new tenant NGOs, see cross-tenant system health, and impersonate (with logging) for support — but cannot see tenant business data by default.</p>
+
+<h2>Proposed tech stack</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Backend framework</td><td><strong>Laravel</strong> (confirmed)</td><td>Given. Strong ecosystem for exactly this shape of system: Eloquent ORM, queues, scheduled jobs (payroll runs, contract-expiry alerts), policies/gates for RBAC.</td></tr>
+<tr><td>Frontend</td><td>Blade + Livewire (recommended) <em>or</em> Inertia.js + Vue/React</td><td>Open decision. Livewire keeps one language (PHP) and one codebase for a small team and matches the form-heavy, dashboard-heavy UI the HRM reference shows well. Inertia+Vue/React is the better call only if a richer SPA feel or a future native-mobile-via-API path is a near-term priority.</td></tr>
+<tr><td>Database</td><td>MySQL or PostgreSQL</td><td>Either works with Laravel; PostgreSQL's row-level security features are a nice-to-have defense-in-depth layer on top of the application-level tenant scoping, if the team is comfortable with it.</td></tr>
+<tr><td>Queue &amp; cache</td><td>Redis + Laravel Horizon</td><td>Payroll generation, report exports, and notification fan-out are all queue-shaped jobs; Horizon gives per-tenant job visibility.</td></tr>
+<tr><td>File storage</td><td>S3-compatible object storage</td><td>Personnel documents, contracts, receipts, safeguarding case files — stored encrypted, never on local disk, path-scoped per tenant.</td></tr>
+<tr><td>Auth</td><td>Laravel Fortify/Breeze (web) + Sanctum (API/mobile-future)</td><td>Session auth for the web portals; token auth ready for a future mobile app or third-party integration without re-architecting.</td></tr>
+<tr><td>Search</td><td>Laravel Scout + Meilisearch (optional, Phase 3+)</td><td>Useful once supplier/beneficiary/employee datasets grow large enough that basic SQL search feels slow.</td></tr>
+<tr><td>Hosting</td><td>AWS (as all source documents recommend), or any S3-compatible cloud</td><td>Not locked to AWS specifically — the architecture should not assume AWS-only services, to keep hosting portable.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Platform core (shared by every module)</h2>
+<p>This is the piece that doesn't exist in any of the source documents but has to be built first — every module depends on it.</p>
+<div class="card-grid">
+  <div class="card mod-core"><h3>Tenant &amp; Org Management</h3><p>Tenant provisioning, org structure, duty stations, branding.</p></div>
+  <div class="card mod-core"><h3>Auth &amp; RBAC</h3><p>Roles, permissions, segregation-of-duties rules, configurable approval chains reused by every module.</p></div>
+  <div class="card mod-core"><h3>Notification Engine</h3><p>Email/in-app/SMS-ready alerts: leave approvals, contract expiry, document expiry, budget thresholds, safeguarding escalations.</p></div>
+  <div class="card mod-core"><h3>Audit Log</h3><p>Immutable who/what/when record for every create, update, approval, and payroll/financial transaction, across all modules.</p></div>
+  <div class="card mod-core"><h3>Document Store</h3><p>Encrypted file storage with per-record attachments — contracts, IDs, receipts, safeguarding evidence — access-controlled by role.</p></div>
+  <div class="card mod-core"><h3>Reporting &amp; Export Engine</h3><p>Shared dashboard/report framework; Excel, CSV, PDF export; the base every module's "Reports" tab is built on.</p></div>
+</div>
+
+<h2>Integration architecture</h2>
+<ul>
+<li><strong>Internal:</strong> modules talk to each other through the shared database and domain events (e.g. <code>EmployeeExited</code> triggers asset-return checks in Procurement and access revocation in Auth), not tightly-coupled direct calls — keeps modules independently deployable/toggleable per tenant.</li>
+<li><strong>External, API-first:</strong> a REST API (versioned, tenant-scoped, token-authenticated) is the same surface a future mobile app, a donor portal, or a third-party accounting tool would use — built once, not bolted on later.</li>
+<li><strong>Outbound exports:</strong> bank transfer files (payroll disbursement), donor report templates (USAID/UN/EU formats), Excel/CSV/PDF everywhere data is listed.</li>
+<li><strong>Notifications:</strong> email always on; SMS gateway integration is a configurable per-tenant add-on (useful for field staff without reliable email/data).</li>
+</ul>
+
+<h2>Security &amp; data protection</h2>
+<p>Directly required by the ToR and reinforced by both proposals — treated as baseline, not optional:</p>
+<ul>
+<li><strong>Transport &amp; storage encryption</strong> — HTTPS/TLS everywhere; encrypted database fields for sensitive data (national ID numbers, bank details, safeguarding case content); encrypted object storage for documents.</li>
+<li><strong>Role-based access control</strong> with segregation of duties (e.g. the person who creates a purchase requisition cannot also approve it) and per-tenant configurable approval hierarchies.</li>
+<li><strong>Full audit trail</strong> on every module, especially payroll and financial transactions.</li>
+<li><strong>Two-factor authentication</strong>, at minimum available and enforceable per tenant/per role (recommended mandatory for HR Admin, Finance, and Super Admin roles).</li>
+<li><strong>Automated daily backups</strong> with periodic restore testing, plus a documented disaster-recovery plan.</li>
+<li><strong>Data ownership</strong> — each tenant NGO owns its own data outright; the platform operator has no rights to it beyond what's needed to provide the service, and a clean data-export/return path exists on offboarding (mirrors the IP/data-ownership clause both WARDI documents insist on).</li>
+<li><strong>Confidentiality for sensitive modules</strong> — safeguarding case data is restricted even from most HR Admins by default; only designated safeguarding focal points and the Country Director see full case detail (see <a href="04-module-hrm.html#safeguarding">HRM → Safeguarding</a>).</li>
+</ul>
+
+<h2>Non-functional targets (summary)</h2>
+<p>Full detail in <a href="10-non-functional.html">Non-Functional Requirements</a>; the headline numbers, consistent across the source documents:</p>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr><td>Uptime</td><td>≥ 98% (ToR requirement)</td></tr>
+<tr><td>Backups</td><td>Automated, daily, with periodic restore verification</td></tr>
+<tr><td>Response time (support)</td><td>24–48 hours for issues under the maintenance agreement</td></tr>
+<tr><td>Access</td><td>Web-based, mobile-responsive, HTTPS-only, multi-location</td></tr>
+<tr><td>Localization</td><td>Multi-currency and multi-language (English baseline; Somali, Arabic, French as configurable per-tenant locales)</td></tr>
+<tr><td>Export</td><td>Excel, CSV, and PDF available wherever data is listed</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="01-vision-and-scope.html"><span class="dir">Back</span>Vision &amp; Scope</a>
+  <a class="next" href="03-roles-and-permissions.html"><span class="dir">Next</span>Roles, Portals &amp; Permissions →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary &amp; Sources — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html" class="active">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Reference</span>
+<h1>Glossary &amp; Sources</h1>
+<p class="lede">Humanitarian/NGO terms used throughout this plan, and a full trace back to where each requirement came from.</p>
+
+<h2>Glossary</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr><td><strong>ToR</strong></td><td>Terms of Reference — the formal document an NGO issues describing what it needs from a vendor/consultant.</td></tr>
+<tr><td><strong>Donor compliance</strong></td><td>Meeting a funder's specific financial and reporting rules for how their money is tracked, spent, and reported.</td></tr>
+<tr><td><strong>Cost center</strong></td><td>A bucket (project, department, or donor) that costs are charged against, for internal and donor reporting.</td></tr>
+<tr><td><strong>Burn rate</strong></td><td>How fast a project is spending its budget relative to how much time has elapsed in the grant period.</td></tr>
+<tr><td><strong>Grant / Project</strong></td><td>A funded body of work with its own budget, timeline, and donor reporting obligations.</td></tr>
+<tr><td><strong>Beneficiary</strong></td><td>A person or household receiving assistance through a project.</td></tr>
+<tr><td><strong>NFI</strong></td><td>Non-Food Item — e.g. blankets, hygiene kits — distributed as humanitarian assistance.</td></tr>
+<tr><td><strong>FSL</strong></td><td>Food Security &amp; Livelihoods — a common humanitarian program sector.</td></tr>
+<tr><td><strong>WASH</strong></td><td>Water, Sanitation &amp; Hygiene — a common humanitarian program sector.</td></tr>
+<tr><td><strong>M&amp;E</strong></td><td>Monitoring &amp; Evaluation — tracking whether project activities are happening and achieving their intended results.</td></tr>
+<tr><td><strong>PSEA</strong></td><td>Protection from Sexual Exploitation and Abuse — a mandatory safeguarding compliance area for humanitarian staff.</td></tr>
+<tr><td><strong>Duty station</strong></td><td>An organization's physical office/operating location.</td></tr>
+<tr><td><strong>RFQ</strong></td><td>Request for Quotation — a formal request to suppliers to bid on a purchase.</td></tr>
+<tr><td><strong>PO / GRN</strong></td><td>Purchase Order / Goods Receipt Note — the documents that authorize a purchase and confirm delivery.</td></tr>
+<tr><td><strong>Tenant</strong></td><td>In this plan: one NGO organization using the platform, isolated from every other tenant's data. See <a href="02-architecture.html">Architecture</a>.</td></tr>
+<tr><td><strong>RBAC</strong></td><td>Role-Based Access Control — permissions assigned by role rather than per individual user.</td></tr>
+<tr><td><strong>Segregation of duties</strong></td><td>An internal-control principle: the person who requests/creates something should not be the same person who approves it.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Source documents</h2>
+<p>All four were read in full before this plan was written. Nothing here is guessed from titles alone.</p>
+
+<h3>1. Terms of Reference for Establishment of an ERP System for WARDI RDI</h3>
+<p><strong>Issuer:</strong> WARDI Relief and Development Initiatives — a Somali NGO founded 1993, operating across six regions of South Central Somalia (Mogadishu, Jowhar, Guriel, Wanlaweyn, Beletweyne, Buloburte) plus a Nairobi liaison office, working in health &amp; nutrition, FSL, education, protection, and WASH.</p>
+<p><strong>What it specifies:</strong> A single-sourced, phased ERP — HRM (Phase I, 90 days) → Finance (Phase II) → Procurement &amp; Logistics (Phase III) → Programs (Phase IV) — with a detailed HRM feature list, technical specifications (web-based, HTTPS, mobile-responsive, RBAC, audit logs, 98% uptime, multi-currency, Excel/CSV/PDF export), deliverables list, 25/25/25/25% milestone payment structure, and confidentiality/IP clauses giving WARDI ownership of all data and custom configuration.</p>
+<p><strong>How it was used:</strong> Primary source for the module sequence (<a href="09-roadmap.html">Roadmap</a>), the HRM feature checklist (<a href="04-module-hrm.html">HRM</a>), the non-functional requirements (<a href="10-non-functional.html">Non-Functional Requirements</a>), and the data-ownership principle (<a href="02-architecture.html">Architecture</a>). WARDI-specific details (its six regions, its single vendor) were generalized into tenant-level configuration rather than platform assumptions.</p>
+
+<h3>2. WARDI ERP Implementation — Technical &amp; Financial Proposal</h3>
+<p><strong>Author:</strong> Prime Tech Solutions, responding directly to the ToR above.</p>
+<p><strong>What it specifies:</strong> A very granular HRM feature list (11 sub-areas, including safeguarding policy management and incident/compliance monitoring not spelled out in the ToR itself), a full security &amp; governance feature list, a project team structure, an 11-month/$180,000 implementation plan across all four modules, and a risk register covering data migration, user resistance, scope creep, technical risk, budget overrun, timeline delay, and vendor dependency.</p>
+<p><strong>How it was used:</strong> Main source for the detailed HRM sub-module breakdown (<a href="04-module-hrm.html">HRM</a>, sections A–I), the security feature list (<a href="02-architecture.html">Architecture</a>), and the Finance/Procurement/Programs feature lists it lists as future-phase scope (used directly in <a href="05-module-finance.html">Finance</a>, <a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a>, and <a href="07-module-programs.html">Programs</a>). Vendor-specific pricing, staffing, and company-history content was not carried into this plan.</p>
+
+<h3>3. Enterprise Resource Planning (ERP) System — for "MARDO"</h3>
+<p><strong>Author:</strong> A template-style proposal from "Prime Tech Solutions" for a different (apparently fictional/placeholder) NGO, "MARDO."</p>
+<p><strong>What it specifies:</strong> The same four-module shape arrived at independently — Module 1: Humanitarian HRM &amp; Payroll; Module 2: Finance &amp; Donor Compliance; Module 3: Logistics &amp; Supply Chain (including Fleet Management); Module 4: Beneficiary &amp; Project Management System — plus a technical architecture summary and an illustrative $90,000/6-8 month budget and timeline.</p>
+<p><strong>How it was used:</strong> Cross-validates the four-module structure independently of WARDI's specific ToR, and is the main source for the <a href="06-module-procurement-logistics.html">Fleet Management</a> feature list and the <a href="07-module-programs.html">Beneficiary registration &amp; sector-tracking</a> detail, which the WARDI ToR only sketches as future-phase headings.</p>
+
+<h3>4. Nova Humanitarian HRM (70-screen UI reference)</h3>
+<p><strong>What it is:</strong> A near-complete set of UI screens for a fictional humanitarian NGO's HRM system, covering four distinct portals: <strong>Employee Portal</strong> (profile, dependents, projects, leave, performance, self-assessment, payroll, timesheet, training, assets, asset verification, safeguarding, calendar, history, notifications, reports, settings), <strong>Supervisor Portal</strong> (my team, leave approvals, timesheet approvals, performance reviews), <strong>HR Admin Portal</strong> (dashboard, employees, recruitment, leave config, performance, asset management, exit management, safeguarding, reports, settings), and <strong>Payroll Portal</strong> (payroll generation, approval workflow, cost allocation, tax &amp; insurance configuration, reports).</p>
+<p><strong>How it was used:</strong> The primary UX and functional source of truth for <a href="04-module-hrm.html">the HRM module</a> and the <a href="03-roles-and-permissions.html">portal concept</a> applied to every other module — it shows working-level detail (exact fields, statuses, approval-chain visuals, cost-allocation percentages) that the text documents only describe as bullet points. Concrete examples reused in this plan: the multi-level payroll approval chain (Supervisor → HR Admin → Finance → Country Director), the leave-balance display pattern (allocated/used/available), the annual asset-verification cycle, the confidential/anonymous safeguarding complaint flow, and the employment-history/profile-change-history audit pattern.</p>
+
+<h2>What was generalized, and how</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Source assumption</th><th>Generalized to</th></tr></thead>
+<tbody>
+<tr><td>One organization (WARDI, or fictional MARDO/Nova)</td><td>Many organizations, each an isolated tenant — see <a href="02-architecture.html">Architecture</a></td></tr>
+<tr><td>Fixed leave types, salary grades, tax rules</td><td>Tenant-configurable policy, not hard-coded values</td></tr>
+<tr><td>Somalia/Kenya-specific tax &amp; currency context</td><td>Per-tenant, per-country configuration; multi-currency and multi-language from Phase 1</td></tr>
+<tr><td>Single named vendor delivering a custom build</td><td>A reusable product built once, onboarding new NGOs through configuration</td></tr>
+<tr><td>WARDI's specific six regions and duty stations</td><td>Generic, tenant-defined Duty Station entity</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="10-non-functional.html"><span class="dir">Back</span>Non-Functional Requirements</a>
+  <a class="next" href="index.html"><span class="dir">Back to</span>Overview</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

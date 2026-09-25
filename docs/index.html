@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGO ERP Platform — Planning Docs</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html" class="active">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Planning phase</span>
+<h1>A multi-tenant ERP for NGOs — not just WARDI</h1>
+<p class="lede">This is the working plan for a fully-featured, multi-module Enterprise Resource Planning system for humanitarian and development organizations — HRM, Finance, Procurement &amp; Logistics, and Programs — built once and reusable across many NGOs, not custom-built for a single one. It will be implemented in Laravel; this documentation set is what that build will follow.</p>
+
+<h2>What this planning set is built from</h2>
+<p>Four source documents were read in full and synthesized into this plan. They are treated as <strong>incomplete drafts</strong>, not a finished spec — this set fills the gaps, resolves overlaps, and generalizes anything that was written for one organization only.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th style="width:26%">Document</th><th>What it is</th><th>How it was used</th></tr></thead>
+<tbody>
+<tr>
+<td><strong>Terms of Reference — WARDI RDI</strong></td>
+<td>WARDI's official ToR for a phased ERP (HRM → Finance → Procurement &amp; Logistics → Programs), single-sourced to one vendor, 90-day HRM phase.</td>
+<td>Primary source for scope, phasing logic, deliverables, and compliance requirements. Generalized: WARDI's specific offices/regions and single-org assumptions were replaced with configurable, per-tenant equivalents.</td>
+</tr>
+<tr>
+<td><strong>WARDI ERP Implementation Proposal</strong> (Prime Tech Solutions)</td>
+<td>A vendor's technical &amp; financial response to the ToR — very detailed HRM feature list, security features, team structure, methodology, 11-month timeline, $180k budget.</td>
+<td>Main source for granular HRM feature checklists and the security/governance feature list in <a href="02-architecture.html">Architecture</a>. Vendor-specific pricing/staffing was dropped; feature lists were kept and extended.</td>
+</tr>
+<tr>
+<td><strong>Enterprise Resource Planning</strong> (generic NGO ERP proposal, for "MARDO")</td>
+<td>A template-style ERP proposal already organized as four modules: HRM &amp; Payroll, Finance &amp; Donor Compliance, Logistics &amp; Supply Chain, Beneficiary &amp; Project Management.</td>
+<td>Confirms the four-module shape independently of WARDI, and is the main source for the Beneficiary/Programs module and the Logistics/Fleet feature list, which the WARDI ToR only sketches.</td>
+</tr>
+<tr>
+<td><strong>Nova Humanitarian HRM</strong> (70-page UI reference)</td>
+<td>A near-complete set of HRM screen designs: Employee Portal, Supervisor Portal, HR Admin Portal, and a Payroll Portal, for a fictional NGO.</td>
+<td>Used as the UX/functional source of truth for <a href="04-module-hrm.html">the HRM module</a> — it shows working detail (fields, workflows, statuses) the text documents only describe at a bullet-point level.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-diff">
+<strong class="label">The key gap this plan fills</strong>
+<p>Every source document assumes the system is built <em>for one organization</em> (WARDI, or the fictional MARDO/Nova). None of them address multi-tenancy — separate NGOs each running their own instance with their own staff, donors, chart of accounts, and configuration on one shared platform. That is the central design problem this plan solves; see <a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a>.</p>
+</div>
+
+<h2>The module map</h2>
+<p>Four functional modules sit on a shared core. Every module is usable standalone but is far more valuable integrated — a leave request affects payroll and project cost allocation; a purchase order affects the budget it draws from; a new hire needs an asset issued and a project assigned.</p>
+
+<div class="card-grid">
+  <div class="card mod-hrm">
+    <span class="badge badge-violet">Module 1</span>
+    <h3>HRM &amp; Payroll</h3>
+    <p>Recruitment, employee records, leave &amp; attendance, payroll, performance, training, safeguarding, exit management. The most detailed module — see the UI reference.</p>
+    <a class="card-link" href="04-module-hrm.html">Open module →</a>
+  </div>
+  <div class="card mod-finance">
+    <span class="badge badge-green">Module 2</span>
+    <h3>Finance &amp; Donor Compliance</h3>
+    <p>General ledger, multi-donor budgeting, AP/AR, bank reconciliation, fixed assets, procure-to-pay, donor-format reporting (USAID, UN, EU).</p>
+    <a class="card-link" href="05-module-finance.html">Open module →</a>
+  </div>
+  <div class="card mod-proc">
+    <span class="badge badge-amber">Module 3</span>
+    <h3>Procurement &amp; Logistics</h3>
+    <p>Procurement planning, RFQ/tender, supplier management, warehouse &amp; inventory, asset &amp; fleet management.</p>
+    <a class="card-link" href="06-module-procurement-logistics.html">Open module →</a>
+  </div>
+  <div class="card mod-prog">
+    <span class="badge badge-teal">Module 4</span>
+    <h3>Programs, Grants &amp; M&amp;E</h3>
+    <p>Project/grant lifecycle, beneficiary registration, distributions, sector tracking, indicators, donor reporting dashboards.</p>
+    <a class="card-link" href="07-module-programs.html">Open module →</a>
+  </div>
+  <div class="card mod-core">
+    <span class="badge badge-slate">Cross-cutting</span>
+    <h3>Platform Core</h3>
+    <p>Tenant &amp; org management, auth &amp; RBAC, notifications, audit log, document store, reporting engine — shared by all four modules.</p>
+    <a class="card-link" href="02-architecture.html">Open architecture →</a>
+  </div>
+</div>
+
+<h2>Recommended reading order</h2>
+<ol>
+<li><a href="01-vision-and-scope.html">Vision &amp; Scope</a> — what we're building, for whom, and what's explicitly out of scope for now.</li>
+<li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a> — the platform decision that changes everything else: how one codebase serves many NGOs.</li>
+<li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a> — who uses the system and what each portal shows them.</li>
+<li>The four module docs, in build order: <a href="04-module-hrm.html">HRM</a> → <a href="05-module-finance.html">Finance</a> → <a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a> → <a href="07-module-programs.html">Programs</a>.</li>
+<li><a href="08-data-model.html">Data Model</a> — the shared entities that tie all four modules together.</li>
+<li><a href="09-roadmap.html">Roadmap &amp; Phasing</a> — the build sequence and what "done" looks like per phase.</li>
+<li><a href="10-non-functional.html">Non-Functional Requirements</a> — security, performance, localization, compliance.</li>
+<li><a href="11-glossary.html">Glossary &amp; Sources</a> — humanitarian/NGO terms and a full trace back to the source documents.</li>
+</ol>
+
+<h2>What's confirmed vs. still open</h2>
+<div class="two-col">
+<div class="callout callout-good">
+<strong class="label">Confirmed</strong>
+<p>Backend framework: <strong>Laravel</strong> (build starts after this planning phase). Four core modules. Multi-tenant, multi-org from day one. Cloud-hosted, web-based, mobile-responsive. Donor-compliance and audit-trail are first-class, not bolted on.</p>
+</div>
+<div class="callout callout-warn">
+<strong class="label">Still open — flagged inline</strong>
+<p>Frontend stack (Blade/Livewire vs. Inertia+Vue/React), shared-DB vs. schema-per-tenant for large customers, native mobile app timing, and which donor report templates to ship first. See <a href="02-architecture.html">Architecture</a> and <a href="09-roadmap.html">Roadmap</a> for the recommendation and trade-offs on each.</p>
+</div>
+</div>
+
+<div class="page-nav">
+  <a class="next" href="01-vision-and-scope.html" style="margin-left:auto">
+    <span class="dir">Next</span>
+    Vision &amp; Scope →
+  </a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

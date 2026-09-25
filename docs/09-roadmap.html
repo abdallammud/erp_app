@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap &amp; Phasing — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html" class="active">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Reference</span>
+<h1>Roadmap &amp; Phasing</h1>
+<p class="lede">The build sequence, reconciled from three different timeline estimates in the source documents, adjusted for the fact that this is a reusable platform rather than a one-off build for one NGO.</p>
+
+<div class="callout callout-diff">
+<strong class="label">Why this timeline differs from the source proposals</strong>
+<p>The WARDI ToR asks for HRM in 90 days; the matching proposal commits to 11 months for all four modules at $180,000; the generic MARDO proposal estimates 6–8 months at $90,000. Those are vendor estimates for <em>a custom build serving one organization</em>. Building a genuinely multi-tenant, configurable platform takes real additional upfront work in Phase 0 (tenant architecture, configuration-driven policy engine, RBAC) that a single-org custom build can skip — but that investment is what lets the second, third, and tenth NGO onboard through configuration alone. Treat the phase-by-phase estimates below as directional, not committed dates.</p>
+</div>
+
+<h2>Phase 0 — Platform Foundation</h2>
+<p class="small">Not present in any source document — this is the addition that makes the rest of the plan multi-tenant. Nothing in Phase 1 can be built correctly without it.</p>
+<ul>
+<li>Tenant model, tenant provisioning, and the global tenant-scoping mechanism</li>
+<li>Authentication, roles &amp; permissions engine, configurable approval-workflow engine</li>
+<li>Core org-structure entities: Department, Duty Station, Position</li>
+<li>Notification engine, audit log, document store, shared report/export framework</li>
+<li>Super Admin portal (tenant onboarding &amp; platform health)</li>
+</ul>
+
+<h2>Phase 1 — HRM &amp; Payroll</h2>
+<p class="small">Matches the ToR's own Phase I. Deliverable shape below is drawn directly from ToR §12.</p>
+<ul>
+<li>Recruitment &amp; onboarding, employee records, leave &amp; attendance, payroll &amp; compensation, performance management, training &amp; development, staff asset assignment, safeguarding, exit management</li>
+<li>Employee Portal, Supervisor Portal, HR Admin Portal, Payroll Portal</li>
+</ul>
+<h4>Required deliverables (per ToR §12, generalized to the platform)</h4>
+<ul>
+<li>System Requirements Specification &amp; System Design Documentation</li>
+<li>Configured HRM module, tested (unit, integration, user acceptance)</li>
+<li>User manuals, technical manuals, process flowcharts, training materials</li>
+<li>Final implementation report</li>
+</ul>
+
+<h2>Phase 2 — Finance &amp; Donor Compliance</h2>
+<ul>
+<li>General ledger, chart of accounts, budget management, AP/AR, bank &amp; cash management, fixed assets</li>
+<li>Payroll → General Ledger integration (the HRM cost-allocation link goes live here)</li>
+<li>Donor compliance report templates</li>
+</ul>
+
+<h2>Phase 3 — Procurement &amp; Logistics</h2>
+<ul>
+<li>Procurement planning, requisitions, RFQ/tender, supplier management</li>
+<li>Warehouse &amp; inventory, asset &amp; equipment tracking, fleet management</li>
+<li>Procure-to-pay integration with Finance goes live; asset registry shared with HRM's staff-asset assignment goes live</li>
+</ul>
+
+<h2>Phase 4 — Programs, Grants &amp; M&amp;E</h2>
+<ul>
+<li>Project/grant lifecycle, activity tracking, beneficiary registration, distributions, sector tracking, indicators</li>
+<li>Full four-module integration complete: an employee's time, a purchase, and a distribution can all be traced to the same project budget line</li>
+</ul>
+
+<h2>Phase 5 — Multi-tenant hardening &amp; growth</h2>
+<p class="small">Where the "reusable product" investment pays off, and where the deferred items from <a href="01-vision-and-scope.html">Vision &amp; Scope</a> get picked back up.</p>
+<ul>
+<li>Self-serve tenant onboarding flow (currently manual by the platform operator)</li>
+<li>Advanced BI/analytics dashboards across modules</li>
+<li>Native mobile app (API is already in place from Phase 0 — see <a href="02-architecture.html">Architecture</a>)</li>
+<li>Payment/disbursement integrations (mobile money, bank API payouts)</li>
+<li>Biometric attendance/registration hardware integration</li>
+<li>Additional donor report templates as new tenants bring new donor requirements</li>
+</ul>
+
+<h2>Payment / milestone structure to reuse for individual NGO engagements</h2>
+<p>Even though the platform itself isn't billed per-organization, if a specific NGO (WARDI or otherwise) is engaged as a funded implementation project, the ToR's milestone structure is a clean, donor-defensible pattern to reuse:</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Instalment</th><th>Milestone</th></tr></thead>
+<tbody>
+<tr><td>25%</td><td>HRM module live for that tenant</td></tr>
+<tr><td>25%</td><td>Finance module live for that tenant</td></tr>
+<tr><td>25%</td><td>Procurement &amp; Logistics module live for that tenant</td></tr>
+<tr><td>25%</td><td>Programs module live for that tenant</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Testing &amp; go-live gate (every phase)</h2>
+<p>Carried forward unchanged from the ToR, because it's good practice, not because it's WARDI-specific:</p>
+<ol class="steps">
+<li><h4>Unit testing</h4><p>Automated tests on business logic — payroll calculations, budget checks, approval routing — per module as it's built.</p></li>
+<li><h4>Integration testing</h4><p>Cross-module flows: payroll → ledger, requisition → budget check, distribution → stock depletion.</p></li>
+<li><h4>User Acceptance Testing</h4><p>Real users from a pilot tenant exercise real workflows before go-live sign-off.</p></li>
+<li><h4>Go-live</h4><p>Only after written/explicit approval from the tenant's designated approver — never a silent cutover.</p></li>
+</ol>
+
+<div class="page-nav">
+  <a href="08-data-model.html"><span class="dir">Back</span>Data Model</a>
+  <a class="next" href="10-non-functional.html"><span class="dir">Next</span>Non-Functional Requirements →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

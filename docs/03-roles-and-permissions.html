@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles, Portals &amp; Permissions — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html" class="active">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">03 · Overview</span>
+<h1>Roles, Portals &amp; Permissions</h1>
+<p class="lede">The system isn't one dashboard — it's a set of distinct portals, each showing only what that role needs. This pattern comes directly from the Nova Humanitarian HRM reference and is extended to the other three modules.</p>
+
+<h2>The portal concept</h2>
+<p>Rather than one navigation menu with everything in it (and permission checks hiding items), each role gets a purpose-built portal with its own sidebar. This keeps the UI simple for a field employee while still giving an HR Admin or Finance Controller a dense, powerful workspace. A user with more than one role (e.g. a Country Director who also approves their own team's leave) can switch between the portals they have access to.</p>
+
+<div class="card-grid">
+  <div class="card mod-hrm"><span class="badge badge-violet">HRM</span><h3>Employee Portal</h3><p>Self-service: profile, dependents, projects, leave, performance, self-assessment, payroll (view), timesheet, training, assets, safeguarding, calendar, notifications.</p></div>
+  <div class="card mod-hrm"><span class="badge badge-violet">HRM</span><h3>Supervisor Portal</h3><p>My Team, leave approvals, timesheet approvals, performance reviews for direct reports.</p></div>
+  <div class="card mod-hrm"><span class="badge badge-violet">HRM</span><h3>HR Admin Portal</h3><p>Dashboard, employees, recruitment, leave configuration, performance cycles, asset management, exit management, safeguarding oversight, reports, settings.</p></div>
+  <div class="card mod-hrm"><span class="badge badge-violet">HRM</span><h3>Payroll Portal</h3><p>Payroll generation, multi-level approval workflow, cost allocation by donor/project, tax &amp; insurance configuration, payroll reports.</p></div>
+  <div class="card mod-finance"><span class="badge badge-green">Finance</span><h3>Finance Portal</h3><p>General ledger, budgets, AP/AR, bank reconciliation, fixed assets, donor compliance reports.</p></div>
+  <div class="card mod-proc"><span class="badge badge-amber">Procurement</span><h3>Procurement &amp; Logistics Portal</h3><p>Requisitions, RFQs/tenders, suppliers, purchase orders, warehouse/inventory, assets, fleet.</p></div>
+  <div class="card mod-prog"><span class="badge badge-teal">Programs</span><h3>Programs Portal</h3><p>Projects/grants, activities, beneficiaries, distributions, indicators, donor reporting dashboards.</p></div>
+  <div class="card mod-core"><span class="badge badge-slate">Platform</span><h3>Super Admin Portal</h3><p>Tenant onboarding &amp; configuration, cross-tenant system health, platform-level user management — outside any single tenant's data.</p></div>
+</div>
+
+<h2>Role → module access matrix</h2>
+<p><strong>V</strong> = view, <strong>E</strong> = edit/create, <strong>A</strong> = approve, <strong>—</strong> = no access. Exact permissions are configurable per tenant; this is the sensible default.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Role</th><th>HRM (own record)</th><th>HRM (team/org)</th><th>Payroll</th><th>Finance</th><th>Procurement</th><th>Programs</th><th>Safeguarding</th></tr></thead>
+<tbody>
+<tr><td>Employee</td><td>V/E (profile fields)</td><td>—</td><td>V (own payslip)</td><td>—</td><td>—</td><td>V (assigned project only)</td><td>E (submit only)</td></tr>
+<tr><td>Supervisor</td><td>V/E</td><td>V + A (own team's leave/timesheet/performance)</td><td>V (team cost)</td><td>—</td><td>V (requisitions they raised)</td><td>V (assigned projects)</td><td>E (submit only)</td></tr>
+<tr><td>HR Admin</td><td>V/E</td><td>V/E/A (org-wide)</td><td>V</td><td>V (staff cost reports)</td><td>—</td><td>—</td><td>V/E (case management, scoped)</td></tr>
+<tr><td>Payroll / Finance Officer</td><td>—</td><td>V (for allocation)</td><td>V/E/A</td><td>V/E/A</td><td>V (P2P integration)</td><td>V (budget utilization)</td><td>—</td></tr>
+<tr><td>Procurement Officer</td><td>—</td><td>—</td><td>—</td><td>V (budget checks)</td><td>V/E/A</td><td>V (distribution needs)</td><td>—</td></tr>
+<tr><td>Program / M&amp;E Officer</td><td>—</td><td>V (assigned team)</td><td>—</td><td>V (project financials)</td><td>V (stock for distributions)</td><td>V/E/A</td><td>—</td></tr>
+<tr><td>Country Director / Executive</td><td>V</td><td>V (org-wide, read)</td><td>V</td><td>V</td><td>V</td><td>V</td><td>V (summary only, unless also Safeguarding Focal Point)</td></tr>
+<tr><td>Safeguarding Focal Point</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>V/E/A (full case detail)</td></tr>
+<tr><td>Auditor / Donor</td><td>—</td><td>—</td><td>V (aggregate only)</td><td>V (scoped to grant/period)</td><td>V (scoped)</td><td>V (scoped)</td><td>—</td></tr>
+<tr><td>Super Admin</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+<p class="small">Super Admin deliberately has no default access to any tenant's business data — platform administration and tenant business operations are separate concerns. Support access requires explicit, logged impersonation.</p>
+
+<h2>Approval workflow engine</h2>
+<p>Every module needs the same underlying capability — a configurable, multi-level approval chain — so it's built once in the platform core and reused everywhere:</p>
+<ul>
+<li><strong>Configurable chain per action type</strong>, per tenant: e.g. annual leave 1–3 days needs only the direct supervisor; 4+ days also needs the department head; payroll needs Supervisor → HR Admin → Finance → Country Director (matches the payroll approval workflow shown in the HRM reference).</li>
+<li><strong>Segregation of duties</strong> enforced structurally: the requester can never also be an approver in their own chain (e.g. a purchase requisition raised by a Procurement Officer cannot be self-approved).</li>
+<li><strong>Status tracking</strong> visible to the requester at every stage (Pending → Level 1 approved → Level 2 pending → …), with the same visual pattern used across leave, timesheet, payroll, and procurement approvals.</li>
+<li><strong>Escalation &amp; reminders</strong> — configurable SLA per step (e.g. 48-hour reminder, auto-escalate after 5 days) feeding the shared notification engine.</li>
+</ul>
+
+<h2>Confidentiality tiers</h2>
+<p>Not every record is equally sensitive. Three tiers, applied consistently across modules:</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Tier</th><th>Examples</th><th>Default visibility</th></tr></thead>
+<tbody>
+<tr><td>Standard</td><td>Employee name, position, department; project activity records; supplier catalog</td><td>Visible to relevant portal roles org-wide</td></tr>
+<tr><td>Restricted</td><td>Salary, bank details, national ID, performance ratings, beneficiary personal data</td><td>Owner + their direct approval chain + HR Admin / Finance / Program lead only</td></tr>
+<tr><td>Highly restricted</td><td>Safeguarding case content, disciplinary records, grievance details</td><td>Named Safeguarding Focal Point(s) and Country Director only, even HR Admin excluded by default</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="02-architecture.html"><span class="dir">Back</span>Architecture &amp; Multi-Tenancy</a>
+  <a class="next" href="04-module-hrm.html"><span class="dir">Next</span>Module: HRM &amp; Payroll →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

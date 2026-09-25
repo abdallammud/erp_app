@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module: Procurement &amp; Logistics — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html" class="active">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Module 3 of 4</span>
+<h1>Procurement &amp; Logistics</h1>
+<p class="lede">From "we need this" to "it's in the warehouse, tagged, and someone's accountable for it" — procurement planning, sourcing, inventory, organizational assets, and the vehicle fleet.</p>
+
+<h2>Sub-modules</h2>
+
+<h3>A. Procurement Planning</h3>
+<ul>
+<li>Annual/period procurement plan, ideally built from project budgets (Programs/Finance) so purchasing is anticipated, not purely reactive</li>
+</ul>
+
+<h3>B. Purchase Requisition &amp; Sourcing</h3>
+<ul>
+<li>Purchase requisition workflow with multi-level approval, configurable per tenant and per spend threshold</li>
+<li>Request for Quotation (RFQ) and tender management for larger purchases</li>
+<li>Bid comparison / analysis tools — side-by-side supplier quotes against defined criteria</li>
+<li>Purchase Order generation from an approved requisition/winning bid</li>
+</ul>
+
+<h3>C. Supplier / Vendor Management</h3>
+<ul>
+<li>Supplier database — shared with Finance's Accounts Payable, not duplicated</li>
+<li>Supplier performance rating, tracked over time from delivery/quality history</li>
+<li>Compliance document tracking per supplier (registration, tax certificate, due-diligence documents)</li>
+</ul>
+
+<h3>D. Goods Receipt &amp; Inventory / Warehouse</h3>
+<ul>
+<li>Goods Receipt Note on delivery, matched against the PO (feeds the three-way match in Finance)</li>
+<li>Multi-warehouse support across duty stations</li>
+<li>Batch and expiry tracking for perishable/medical stock</li>
+<li>Stock in/out management with minimum-stock alerts</li>
+<li>Damaged/expired stock tracking and write-off workflow</li>
+<li>Inventory valuation reporting</li>
+</ul>
+
+<h3>E. Asset &amp; Equipment Tracking</h3>
+<ul>
+<li>Organization-wide asset registry — barcode/serial tagging, category, value, condition, location</li>
+<li>Field asset allocation (assigning an asset to a project, a location, or an employee — the same registry HRM's staff-linked asset assignment draws from, see <a href="04-module-hrm.html">HRM → Asset Management</a>)</li>
+<li>Maintenance scheduling and history per asset</li>
+<li>Feeds Finance's fixed-asset depreciation records</li>
+</ul>
+
+<h3>F. Fleet Management</h3>
+<ul>
+<li>Vehicle registry (make/model, registration, assigned duty station)</li>
+<li>Fuel tracking and consumption reporting</li>
+<li>Maintenance logs and scheduled service alerts</li>
+<li>Driver assignment and trip logging</li>
+</ul>
+
+<h3>G. Logistics Reports</h3>
+<ul>
+<li>Stock status and valuation reports</li>
+<li>Procurement status (open requisitions, POs in progress, delivery pending)</li>
+<li>Supplier performance summary</li>
+<li>Asset register export (by category, location, condition, age)</li>
+</ul>
+
+<h2>Key integration points</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>With</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Finance</td><td>Procure-to-pay chain (PO → GRN → Invoice → Payment); every requisition checks available budget on the linked cost center before it can be approved.</td></tr>
+<tr><td>HRM</td><td>Shared asset registry — an asset issued to an employee is the same record Procurement tracks as organizational inventory; on employee exit, HRM's exit checklist blocks clearance until the asset shows returned here.</td></tr>
+<tr><td>Programs</td><td>Distribution items (food, NFI, cash-adjacent goods) drawn from warehouse stock for a specific project/activity, so distribution reporting and inventory depletion stay consistent.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="data-entities">Data entities specific to Procurement &amp; Logistics</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Entity</th><th>Key attributes</th></tr></thead>
+<tbody>
+<tr><td>Procurement Plan</td><td>tenant, period, planned items linked to project budgets</td></tr>
+<tr><td>Purchase Requisition</td><td>requester, items, justification, approval status</td></tr>
+<tr><td>RFQ / Bid</td><td>requisition link, invited suppliers, quotes, comparison scoring</td></tr>
+<tr><td>Purchase Order</td><td>supplier, items, amount, budget-line link, status</td></tr>
+<tr><td>Goods Receipt Note</td><td>PO link, items received, condition, discrepancies</td></tr>
+<tr><td>Vendor</td><td>shared with Finance AP — see <a href="08-data-model.html">Data Model</a></td></tr>
+<tr><td>Warehouse / Stock Item / Stock Movement</td><td>location, batch, expiry, quantity in/out</td></tr>
+<tr><td>Asset</td><td>shared registry — category, value, condition, current holder (employee, project, or warehouse)</td></tr>
+<tr><td>Vehicle / Trip Log / Fuel Log</td><td>registration, duty station, driver, maintenance history</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="05-module-finance.html"><span class="dir">Back</span>Module: Finance &amp; Donor Compliance</a>
+  <a class="next" href="07-module-programs.html"><span class="dir">Next</span>Module: Programs, Grants &amp; M&amp;E →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

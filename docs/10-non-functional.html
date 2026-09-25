@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-Functional Requirements — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html" class="active">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Reference</span>
+<h1>Non-Functional Requirements</h1>
+<p class="lede">The qualities the system must have regardless of which module a user is in — mostly drawn directly from the ToR's technical specifications, extended for the multi-tenant context.</p>
+
+<h2>Availability &amp; reliability</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr><td>Uptime</td><td>Minimum 98% (ToR requirement, §9 &amp; §16)</td></tr>
+<tr><td>Backups</td><td>Automated daily backups with periodic restore verification, not just backup-job success/failure logs</td></tr>
+<tr><td>Disaster recovery</td><td>Documented recovery plan and target recovery time, tested at least annually</td></tr>
+<tr><td>Support response</td><td>24–48 hours during the warranty/maintenance period (ToR §16)</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Security</h2>
+<ul>
+<li>HTTPS/TLS for all traffic; no unencrypted endpoints</li>
+<li>Encryption at rest for the database and for the document store (AES-256, matching the proposal's stated standard)</li>
+<li>Role-based access control with segregation of duties, enforced structurally (see <a href="02-architecture.html">Architecture</a>)</li>
+<li>Two-factor authentication available, and enforceable per role/tenant</li>
+<li>Full audit logging: every create, update, delete, approval, and login event, immutable</li>
+<li>NDA / confidentiality expectations for anyone with platform-operator-level access; tenant data is never accessed except for support, and only with logging</li>
+</ul>
+
+<h2>Data ownership &amp; portability</h2>
+<p>Both WARDI documents are explicit that the organization owns its data and the source code/configuration built for it belongs to them; the platform generalizes this per-tenant:</p>
+<ul>
+<li>Each tenant NGO owns its own data outright — the platform operator has no rights to use it beyond providing the service.</li>
+<li>A clean, complete data export (not just a partial CSV dump) is available on request and guaranteed on offboarding.</li>
+<li>No tenant's data is ever visible to, or used to train/benefit, another tenant.</li>
+</ul>
+
+<h2>Performance &amp; field-realistic use</h2>
+<ul>
+<li>Lightweight, low-bandwidth-optimized pages — this is a deployment context with variable connectivity in field offices, not a head-office-only assumption.</li>
+<li>Mobile-responsive throughout, since field staff frequently work from phones or tablets, not just desktop browsers.</li>
+<li>Graceful degradation over spotty connections is preferred to requiring a persistent connection; full offline-first support is not committed for Phase 1–4 but the architecture should not foreclose it later.</li>
+</ul>
+
+<h2>Localization</h2>
+<ul>
+<li><strong>Multi-currency</strong> — required from Phase 1 (payroll) onward; an NGO operating across borders (as WARDI does, with a Nairobi liaison office alongside Somalia operations) needs this immediately, not as a later add-on.</li>
+<li><strong>Multi-language</strong> — English as the baseline interface language; Somali, Arabic, and French as configurable per-tenant locales, reflecting the languages relevant to the initial reference customer's operating context and neighboring humanitarian environments.</li>
+<li><strong>Per-country tax &amp; statutory configuration</strong> — tax brackets, social security/pension rules, and public holiday calendars are tenant- and country-configurable, not hard-coded to one jurisdiction (WARDI alone spans Somalia and Kenya).</li>
+</ul>
+
+<h2>Interoperability</h2>
+<ul>
+<li>Data export in Excel, CSV, and PDF wherever data is listed or reported (ToR §9 requirement, applied platform-wide)</li>
+<li>API integration capability from Phase 0, so bank systems, SMS gateways, or a future mobile app can integrate without re-architecting</li>
+<li>SMS notification capability as a configurable, optional channel alongside email/in-app notifications</li>
+</ul>
+
+<h2>Scalability &amp; extensibility</h2>
+<ul>
+<li>Modular architecture — each of the four modules can be enabled/disabled per tenant, supporting the phased-adoption pattern the ToR itself uses (a tenant might run HRM only for a year before adding Finance)</li>
+<li>Configuration over code changes for anything tenant-specific: leave policies, salary grades, chart of accounts, approval chains, donor report formats</li>
+<li>Designed to support "dozens of NGOs" comfortably on the default shared-database model, with a dedicated-database escape hatch for any tenant with contractual data-residency requirements (see <a href="02-architecture.html">Architecture</a>)</li>
+</ul>
+
+<h2>Accessibility &amp; usability</h2>
+<ul>
+<li>Human-centered design approach — workflows validated with real HR, finance, and field staff before being finalized, not designed in isolation (both proposals emphasize this; the 70-screen HRM reference is the result of exactly this approach)</li>
+<li>Consistent visual language for status (pending/approved/rejected), confidentiality (restricted/highly restricted), and workflow stage across every module, so a user who learns one part of the system can navigate the rest</li>
+</ul>
+
+<div class="page-nav">
+  <a href="09-roadmap.html"><span class="dir">Back</span>Roadmap &amp; Phasing</a>
+  <a class="next" href="11-glossary.html"><span class="dir">Next</span>Glossary &amp; Sources →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

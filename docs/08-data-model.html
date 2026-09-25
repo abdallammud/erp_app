@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Model — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .spine {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 20px 0 30px;
+  }
+  .spine-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .spine-node {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 13.5px;
+    text-align: center;
+  }
+  .spine-children {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .spine-chip {
+    background: var(--slate-100);
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .spine-arrow {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding-left: 90px;
+    margin: -4px 0;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html" class="active">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Reference</span>
+<h1>Data Model</h1>
+<p class="lede">The entities every module shares, and how they connect. Module-specific entities are detailed on each module's own page; this page is the spine that ties them together.</p>
+
+<h2>Core shared entities</h2>
+<p>These exist once, at the platform-core level, and every module reads or writes them rather than keeping its own copy.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Entity</th><th>Description</th><th>Used directly by</th></tr></thead>
+<tbody>
+<tr><td><strong>Tenant / Organization</strong></td><td>One NGO. Owns everything else — every tenant-scoped table carries a <code>tenant_id</code>. See <a href="02-architecture.html">Architecture</a>.</td><td>All modules</td></tr>
+<tr><td><strong>User</strong></td><td>A login. Belongs to exactly one tenant, holds one or more roles.</td><td>All modules</td></tr>
+<tr><td><strong>Role / Permission</strong></td><td>What a user can see/do; drives which portal(s) they land in. See <a href="03-roles-and-permissions.html">Roles &amp; Permissions</a>.</td><td>All modules</td></tr>
+<tr><td><strong>Department</strong></td><td>Org unit; used for reporting lines and cost roll-ups.</td><td>HRM, Finance</td></tr>
+<tr><td><strong>Duty Station / Office</strong></td><td>A physical location the tenant operates from — enables multi-location operation.</td><td>HRM, Procurement &amp; Logistics, Programs</td></tr>
+<tr><td><strong>Employee</strong></td><td>A staff member — the anchor record for HRM, and referenced everywhere staff are assigned to work (projects, requisitions, approvals).</td><td>HRM, Finance (cost allocation), Procurement (requisitioner), Programs (project assignment)</td></tr>
+<tr><td><strong>Donor</strong></td><td>A funding source. One tenant works with many; one donor may fund many projects.</td><td>Finance, Programs, HRM (payroll cost allocation)</td></tr>
+<tr><td><strong>Project / Grant</strong></td><td>A funded body of work with a start/end date and a budget envelope. The unit almost everything else ultimately rolls up to.</td><td>Finance (cost center), HRM (staff allocation), Procurement (requisition justification), Programs (activities, beneficiaries)</td></tr>
+<tr><td><strong>Cost Center / Budget Line</strong></td><td>The specific bucket a cost is charged against within a project's budget.</td><td>Finance, HRM (payroll allocation), Procurement (PO budget check)</td></tr>
+<tr><td><strong>Vendor / Supplier</strong></td><td>An external party the organization pays for goods/services.</td><td>Procurement &amp; Logistics, Finance (Accounts Payable)</td></tr>
+<tr><td><strong>Asset</strong></td><td>Any tracked organizational item — from a laptop to a vehicle — with one record regardless of whether it's currently assigned to staff, a warehouse, or a project.</td><td>Procurement &amp; Logistics, HRM (staff assignment), Finance (fixed-asset depreciation)</td></tr>
+<tr><td><strong>Document / File</strong></td><td>Any uploaded attachment (contract, receipt, ID, safeguarding evidence), stored encrypted with per-record access control.</td><td>All modules</td></tr>
+<tr><td><strong>Approval Workflow Instance</strong></td><td>A record of a specific approval chain in progress or completed for a specific request (leave, payroll, requisition, etc.).</td><td>All modules</td></tr>
+<tr><td><strong>Audit Log Entry</strong></td><td>Immutable who/what/when/old-value/new-value record.</td><td>All modules</td></tr>
+<tr><td><strong>Notification</strong></td><td>An alert generated by the system (approval needed, contract expiring, budget threshold reached, document expiring).</td><td>All modules</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>The core spine</h2>
+<p>Two chains run through the whole system: an <strong>organizational</strong> chain (who works where) and a <strong>funding</strong> chain (who pays for what). Almost every module-specific entity attaches to one or both.</p>
+
+<div class="spine">
+  <div class="spine-row">
+    <div class="spine-node">Tenant</div>
+    <div class="spine-children">
+      <span class="spine-chip">Organization profile &amp; policy config</span>
+    </div>
+  </div>
+  <div class="spine-arrow">↓ organizational chain</div>
+  <div class="spine-row">
+    <div class="spine-node">Department / Duty Station</div>
+    <div class="spine-children"><span class="spine-chip">Position / Grade</span></div>
+  </div>
+  <div class="spine-arrow">↓</div>
+  <div class="spine-row">
+    <div class="spine-node">Employee</div>
+    <div class="spine-children">
+      <span class="spine-chip">Payroll &amp; cost allocation</span>
+      <span class="spine-chip">Leave &amp; timesheet</span>
+      <span class="spine-chip">Performance &amp; training</span>
+      <span class="spine-chip">Asset assignment</span>
+      <span class="spine-chip">Safeguarding cases</span>
+    </div>
+  </div>
+</div>
+
+<div class="spine">
+  <div class="spine-row">
+    <div class="spine-node">Donor</div>
+    <div class="spine-children"><span class="spine-chip">Grant agreement</span></div>
+  </div>
+  <div class="spine-arrow">↓ funding chain</div>
+  <div class="spine-row">
+    <div class="spine-node">Project / Grant</div>
+    <div class="spine-children"><span class="spine-chip">Budget line / Cost center</span></div>
+  </div>
+  <div class="spine-arrow">↓</div>
+  <div class="spine-row">
+    <div class="spine-node">Expenditure sources</div>
+    <div class="spine-children">
+      <span class="spine-chip">Payroll cost allocation (HRM)</span>
+      <span class="spine-chip">Purchase order (Procurement)</span>
+      <span class="spine-chip">Distribution (Programs)</span>
+      <span class="spine-chip">Journal posting (Finance)</span>
+    </div>
+  </div>
+</div>
+
+<p>Where the two chains meet is the single most important design fact in the whole system: <strong>an Employee's time is charged to a Project's Budget Line</strong> via a percentage-allocation on their timesheet/payroll record. That one relationship is what makes donor-compliant cost reporting possible without manual reconciliation — see <a href="04-module-hrm.html">HRM → Payroll &amp; Compensation</a> and <a href="05-module-finance.html">Finance → General Ledger</a>.</p>
+
+<h2>Module-specific entities</h2>
+<p>Full attribute lists live on each module page — this is the index:</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Module</th><th>Key entities</th><th>Detail</th></tr></thead>
+<tbody>
+<tr><td>HRM &amp; Payroll</td><td>Vacancy, Contract, Salary Grade, Payroll Run, Leave Request, Performance Cycle, Training Record, Safeguarding Case, Exit Record</td><td><a href="04-module-hrm.html#data-entities">See table</a></td></tr>
+<tr><td>Finance</td><td>Chart of Accounts, Journal Entry, Invoice, Bank Account, Fixed Asset, Donor Report Template</td><td><a href="05-module-finance.html#data-entities">See table</a></td></tr>
+<tr><td>Procurement &amp; Logistics</td><td>Procurement Plan, Purchase Requisition, RFQ/Bid, Purchase Order, Goods Receipt Note, Warehouse/Stock, Vehicle</td><td><a href="06-module-procurement-logistics.html#data-entities">See table</a></td></tr>
+<tr><td>Programs</td><td>Project/Grant, Activity, Beneficiary/Household, Distribution Event, Indicator</td><td><a href="07-module-programs.html#data-entities">See table</a></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Data integrity rules</h2>
+<ul>
+<li><strong>Tenant isolation is structural, not optional</strong> — enforced by a global query scope on every tenant-scoped model (see <a href="02-architecture.html">Architecture</a>), not left to individual controllers to remember.</li>
+<li><strong>Soft deletes everywhere a financial or HR trail matters</strong> — an employee, project, or asset is never hard-deleted while historical transactions reference it; it's archived/deactivated instead, so payroll history and audit trails stay intact.</li>
+<li><strong>No silent overwrites on financial or approval data</strong> — budget revisions, salary changes, and contract amendments are versioned (old value retained, not replaced), matching the employment-history and profile-change-history pattern already established in the HRM reference.</li>
+<li><strong>Every cross-module money link is a foreign key, not a copied number</strong> — e.g. a payroll run's cost-allocation lines reference the actual Budget Line record; if the budget line's donor code changes, every historical payroll report referencing it should reflect that through the relationship, not a stale copy.</li>
+</ul>
+
+<div class="page-nav">
+  <a href="07-module-programs.html"><span class="dir">Back</span>Module: Programs, Grants &amp; M&amp;E</a>
+  <a class="next" href="09-roadmap.html"><span class="dir">Next</span>Roadmap &amp; Phasing →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

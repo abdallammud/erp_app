@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module: Finance &amp; Donor Compliance — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html" class="active">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Module 2 of 4</span>
+<h1>Finance &amp; Donor Compliance</h1>
+<p class="lede">Where every other module's activity turns into money: payroll cost, purchase orders, and project budgets all land here. Built for the reality of grant-funded accounting — multiple donors, multiple currencies, and reports that must match each donor's own required format.</p>
+
+<h2>Sub-modules</h2>
+
+<h3>A. General Ledger &amp; Chart of Accounts</h3>
+<ul>
+<li>Configurable chart of accounts per tenant, with support for multiple concurrent charts if a tenant needs donor-specific coding alongside its own internal one</li>
+<li>Cost center structure: by project, by donor, by department — the same transaction can roll up multiple ways for internal vs. donor reporting</li>
+<li>Budget lines per project/grant, mapped to chart-of-accounts categories</li>
+<li>Full double-entry ledger with journal entries, postings from payroll, procurement, and manual entry</li>
+</ul>
+
+<h3>B. Budget Management</h3>
+<ul>
+<li>Donor budget upload/entry per project, by budget line and by period</li>
+<li>Budget vs. actual tracking, updated in real time as payroll, procurement, and other expenditure post</li>
+<li>Burn rate monitoring — spend-to-date against time-elapsed, flagging projects running ahead of or behind expected pace (mirrors the "attention: higher than expected burn rate" pattern from the HRM payroll-cost reference, applied at the whole-project level)</li>
+<li>Budget revision tracking — every amendment versioned, with reason and approver, never silently overwritten</li>
+</ul>
+
+<h3>C. Accounts Payable</h3>
+<ul>
+<li>Vendor/supplier registration — shared registry with <a href="06-module-procurement-logistics.html">Procurement</a>, not duplicated</li>
+<li>Invoice processing against a purchase order (three-way match: PO ↔ Goods Receipt Note ↔ Invoice)</li>
+<li>Payment voucher generation with multi-level approval</li>
+<li>Withholding tax calculation where applicable per country configuration</li>
+</ul>
+
+<h3>D. Accounts Receivable</h3>
+<ul>
+<li>Grant/donor receivable tracking — expected vs. received installments per grant agreement</li>
+<li>Installment schedule and ageing</li>
+</ul>
+
+<h3>E. Cash &amp; Bank Management</h3>
+<ul>
+<li>Multi-bank account support, including field-office accounts</li>
+<li>Bank reconciliation workflow</li>
+<li>Petty cash / cash advance management, with field-office cash control suited to multi-location, cash-heavy operations</li>
+</ul>
+
+<h3>F. Fixed Assets</h3>
+<ul>
+<li>Asset capitalization and depreciation scheduling</li>
+<li>Asset transfer and disposal tracking, feeding the same underlying asset registry shared with HRM (staff-assigned assets) and Procurement (organizational inventory) — one asset record, viewed from whichever module needs it</li>
+</ul>
+
+<h3>G. Procure-to-Pay Integration</h3>
+<ul>
+<li>Direct workflow link with Procurement: Purchase Order → Goods Receipt Note → Invoice → Payment, each stage visible from both modules rather than re-entered</li>
+</ul>
+
+<h3>H. Donor Compliance Reporting</h3>
+<ul>
+<li>Donor-specific financial report templates — configurable export formats matching common donor requirements (e.g. USAID SF-425-style, UN agency, EU formats) so a finance officer doesn't hand-rebuild a report for every donor every quarter</li>
+<li>Full transaction-level audit trail behind every reported figure, ready for external audit</li>
+</ul>
+
+<h3>I. Financial Reports</h3>
+<ul>
+<li>Trial balance</li>
+<li>Income &amp; expenditure statement</li>
+<li>Balance sheet</li>
+<li>Project financial report (budget vs. actual by project, including the payroll cost allocated to it from HRM)</li>
+<li>Donor financial statement / grant utilization report</li>
+</ul>
+
+<h2>Key integration points</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>From</th><th>Into Finance as</th></tr></thead>
+<tbody>
+<tr><td>HRM payroll run</td><td>Salary cost posted to the general ledger, split by the cost-allocation percentages set on each employee's timesheet/assignment</td></tr>
+<tr><td>Procurement purchase order → GRN → invoice</td><td>Committed and actual expenditure against the relevant budget line, checked against available budget before approval</td></tr>
+<tr><td>Programs project budget</td><td>The budget envelope Finance tracks actuals against; a project cannot exist in Finance without a corresponding Programs project record</td></tr>
+<tr><td>Fixed asset depreciation</td><td>Periodic depreciation journal entries, and disposal gain/loss</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="data-entities">Data entities specific to Finance</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Entity</th><th>Key attributes</th></tr></thead>
+<tbody>
+<tr><td>Chart of Accounts / Account</td><td>code, name, type, tenant-configurable</td></tr>
+<tr><td>Cost Center / Budget Line</td><td>project/donor link, period, allocated amount</td></tr>
+<tr><td>Journal Entry / Ledger Posting</td><td>date, account, debit/credit, source module &amp; reference</td></tr>
+<tr><td>Vendor</td><td>shared with Procurement — see <a href="08-data-model.html">Data Model</a></td></tr>
+<tr><td>Invoice / Payment Voucher</td><td>vendor, PO reference, amount, tax, approval status</td></tr>
+<tr><td>Bank Account / Bank Reconciliation</td><td>tenant, currency, statement matching</td></tr>
+<tr><td>Fixed Asset</td><td>shared registry — acquisition value, depreciation method, book value</td></tr>
+<tr><td>Donor Report Template</td><td>donor, format definition, mapped fields</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="04-module-hrm.html"><span class="dir">Back</span>Module: HRM &amp; Payroll</a>
+  <a class="next" href="06-module-procurement-logistics.html"><span class="dir">Next</span>Module: Procurement &amp; Logistics →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

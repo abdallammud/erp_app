@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vision &amp; Scope — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html" class="active">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">01 · Overview</span>
+<h1>Vision &amp; Scope</h1>
+<p class="lede">Why this exists, who it's for, and — just as important — what it deliberately does not try to do yet.</p>
+
+<h2>Problem statement</h2>
+<p>Small and mid-size NGOs typically run their operations across a patchwork of spreadsheets, generic accounting software, WhatsApp for approvals, and paper personnel files. That creates four recurring failures the source documents independently identify:</p>
+<ul>
+<li><strong>Donor compliance risk</strong> — no single place to show how staff time, spend, and assets map to a specific grant or budget line; every audit becomes a manual reconstruction.</li>
+<li><strong>No real-time visibility</strong> — leadership cannot see burn rate, headcount cost by project, or leave liability without asking three departments to compile numbers by hand.</li>
+<li><strong>Weak internal control</strong> — approvals happen informally (email, verbal), so segregation of duties and audit trails don't really exist.</li>
+<li><strong>Duplicated effort across systems</strong> — the same employee, project, or donor is re-entered in HR, finance, and program tools that don't talk to each other.</li>
+</ul>
+
+<h2>Vision statement</h2>
+<blockquote>One web-based platform where an NGO's HR, Finance, Procurement &amp; Logistics, and Programs teams work from the same organizational data — staff, donors, projects, budgets, assets — with role-based access, full audit trails, and donor-ready reporting, from day one.</blockquote>
+
+<div class="callout callout-diff">
+<strong class="label">The one decision that changes the whole plan</strong>
+<p>This is being built as a <strong>product used by many NGOs</strong>, not a custom system for one. WARDI's ToR is the sharpest and most complete requirements document available, so it anchors the HRM module and the phasing logic — but every WARDI-specific detail (their six regions, their single-vendor contract, their org name) is treated as <em>one tenant's configuration</em>, not a hard-coded assumption. See <a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a> for how that's achieved technically.</p>
+</div>
+
+<h2>Design principles</h2>
+<p>Synthesized from what all four source documents agree on, generalized where they only addressed one organization:</p>
+
+<div class="card-grid">
+  <div class="card mod-core"><h3>1. Multi-tenant by design</h3><p>Each NGO is an isolated tenant with its own users, org structure, chart of accounts, donors, leave policies, and branding — on one shared codebase.</p></div>
+  <div class="card mod-core"><h3>2. Donor-compliance first</h3><p>Cost centers, budget lines, and multi-donor allocation are core concepts in every module, not a Finance-only afterthought — payroll, procurement, and time all trace back to a grant.</p></div>
+  <div class="card mod-core"><h3>3. Configuration over customization</h3><p>Leave types, salary grades, approval chains, tax grids, and donor report formats are tenant-level settings, not code forks — the same codebase must serve WARDI and the next NGO without a redeploy.</p></div>
+  <div class="card mod-core"><h3>4. Modular but integrated</h3><p>Each module (HRM, Finance, Procurement, Programs) works standalone and can be adopted in phases — mirroring how WARDI itself is phasing the rollout — but shares one database and one set of core entities.</p></div>
+  <div class="card mod-core"><h3>5. Field-realistic</h3><p>Built for multi-location operations with variable connectivity, high staff turnover, and cash-heavy field offices — not a head-office-only tool.</p></div>
+  <div class="card mod-core"><h3>6. Auditable by default</h3><p>Every approval, payroll run, and financial transaction is logged with who/when/what changed — not an add-on for organizations that ask for it.</p></div>
+</div>
+
+<h2>Who this is for</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Persona</th><th>Primary needs</th></tr></thead>
+<tbody>
+<tr><td><strong>Employee</strong></td><td>Self-service: view payslip, request leave, submit timesheet, update profile/dependents, complete self-assessment, view assigned assets.</td></tr>
+<tr><td><strong>Supervisor / Line Manager</strong></td><td>Approve leave and timesheets for their team, conduct performance reviews, see team roster and project allocation.</td></tr>
+<tr><td><strong>HR Admin / HR Manager</strong></td><td>Full employee lifecycle: recruitment, records, leave policy configuration, performance cycles, exit management, safeguarding oversight, HR reporting.</td></tr>
+<tr><td><strong>Payroll / Finance Officer</strong></td><td>Run payroll, manage tax &amp; insurance configuration, allocate staff cost across donors/projects, reconcile the general ledger, process AP/AR.</td></tr>
+<tr><td><strong>Procurement / Logistics Officer</strong></td><td>Manage requisitions, RFQs, purchase orders, supplier records, warehouse stock, organizational assets, and vehicle fleet.</td></tr>
+<tr><td><strong>Program / M&amp;E Officer</strong></td><td>Manage project activities, beneficiary registration, distributions, indicators, and donor narrative reporting.</td></tr>
+<tr><td><strong>Country Director / Executive</strong></td><td>Cross-module dashboards: burn rate, headcount cost, contract expiries, safeguarding case summary, program KPIs — without asking each department for a report.</td></tr>
+<tr><td><strong>Auditor / Donor</strong> <span class="small">(optional, read-only)</span></td><td>Scoped, read-only access to financial and compliance reports for a specific grant or period.</td></tr>
+<tr><td><strong>Platform / Super Admin</strong></td><td>Onboards new tenant NGOs, manages platform-level configuration, monitors system health across tenants.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>In scope for this plan</h2>
+<ul>
+<li>The four modules — HRM &amp; Payroll, Finance &amp; Donor Compliance, Procurement &amp; Logistics, Programs/Grants/M&amp;E — fully specified, phased for delivery.</li>
+<li>A multi-tenant platform core: tenant management, authentication, role-based access control, notifications, audit logging, document storage, and a shared reporting/BI layer.</li>
+<li>Web-based, mobile-responsive UI, usable on low-bandwidth connections, cloud-hosted.</li>
+<li>Standard donor compliance reporting shapes (USAID, UN, EU-style formats) as configurable export templates.</li>
+</ul>
+
+<h2>Explicitly out of scope (for now)</h2>
+<p>Named so the roadmap isn't quietly derailed by scope creep — these are real needs, deferred to a later phase rather than ignored:</p>
+<ul>
+<li><strong>Clinical / case-management depth</strong> for protection or health beneficiary data — Programs module tracks beneficiaries, distributions, and indicators, not a full case-management system with clinical workflows.</li>
+<li><strong>Payment/disbursement integrations</strong> (mobile money, bank API payouts) — Phase 1 exports bank transfer files; live payment rails are a later integration.</li>
+<li><strong>Native mobile apps</strong> — the web app is mobile-responsive from day one; dedicated iOS/Android apps are a Phase 5 consideration (see <a href="09-roadmap.html">Roadmap</a>).</li>
+<li><strong>Biometric attendance/registration hardware integration</strong> — designed to be API-ready for it, not built in Phase 1.</li>
+<li><strong>Self-serve tenant signup / billing</strong> — early tenants are onboarded manually by the platform operator; a self-serve SaaS signup flow is a later-phase concern.</li>
+</ul>
+
+<h2>Success criteria</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Outcome</th><th>How we'll know</th></tr></thead>
+<tbody>
+<tr><td>Donor compliance is provable, not reconstructed</td><td>Any staff-cost or expenditure line can be traced to a donor/project/budget line with one click, with a full audit trail.</td></tr>
+<tr><td>Leadership has real-time visibility</td><td>Burn rate, headcount cost by project, and contract-expiry dashboards are always current — no manual compilation.</td></tr>
+<tr><td>Internal controls are real</td><td>Every leave, payroll, and procurement action passes through a configurable, logged, multi-level approval chain.</td></tr>
+<tr><td>The platform generalizes past WARDI</td><td>A second NGO can be onboarded as a new tenant using only configuration (org structure, leave policy, chart of accounts, donors) — zero code changes.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="index.html"><span class="dir">Back</span>Overview</a>
+  <a class="next" href="02-architecture.html"><span class="dir">Next</span>Architecture &amp; Multi-Tenancy →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module: HRM &amp; Payroll — NGO ERP Platform</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="index.html">
+    <span class="name">NGO ERP Platform</span>
+    <span class="tag">Planning &amp; Requirements Docs</span>
+  </a>
+  <div class="sidebar-status">Planning phase — no code yet. This set is the reference the Laravel build will follow.</div>
+
+  <div class="nav-group">
+    <h3>Overview</h3>
+    <ul>
+      <li><a href="index.html">Start here</a></li>
+      <li><a href="01-vision-and-scope.html">Vision &amp; Scope</a></li>
+      <li><a href="02-architecture.html">Architecture &amp; Multi-Tenancy</a></li>
+      <li><a href="03-roles-and-permissions.html">Roles, Portals &amp; Permissions</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Modules</h3>
+    <ul>
+      <li><a href="04-module-hrm.html" class="active">HRM &amp; Payroll</a></li>
+      <li><a href="05-module-finance.html">Finance &amp; Donor Compliance</a></li>
+      <li><a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a></li>
+      <li><a href="07-module-programs.html">Programs, Grants &amp; M&amp;E</a></li>
+    </ul>
+  </div>
+
+  <div class="nav-group">
+    <h3>Reference</h3>
+    <ul>
+      <li><a href="08-data-model.html">Data Model</a></li>
+      <li><a href="09-roadmap.html">Roadmap &amp; Phasing</a></li>
+      <li><a href="10-non-functional.html">Non-Functional Requirements</a></li>
+      <li><a href="11-glossary.html">Glossary &amp; Sources</a></li>
+    </ul>
+  </div>
+</aside>
+
+<main>
+<div class="content">
+
+<span class="eyebrow">Module 1 of 4</span>
+<h1>HRM &amp; Payroll</h1>
+<p class="lede">The foundation module — every NGO has staff before it has anything else, and every other module (project cost allocation, procurement approvals, safeguarding) hangs off the employee record. This is also the most thoroughly specified module: it draws directly on a 70-screen UI reference in addition to the ToR and both proposals.</p>
+
+<div class="callout callout-info">
+<strong class="label">Why it's Phase 1</strong>
+<p>WARDI's ToR sequences the whole ERP as HRM → Finance → Procurement &amp; Logistics → Programs, and both proposals agree HRM is the right starting point since org structure, staff, and cost centers are referenced by every later module. This plan keeps that sequence — see <a href="09-roadmap.html">Roadmap</a>.</p>
+</div>
+
+<h2>Sub-modules</h2>
+
+<h3>A. Recruitment &amp; Onboarding</h3>
+<ul>
+<li>Vacancy planning with multi-level approval before a role can be posted</li>
+<li>Internal and external (public) job posting</li>
+<li>Applicant Tracking System — CV repository, application intake, shortlisting</li>
+<li>Candidate scoring matrix and ranking; interview panel documentation</li>
+<li>Automated offer letter generation from templates</li>
+<li>Digital onboarding checklist (equipment, accounts, orientation, policy acknowledgements)</li>
+<li>Probation tracking with automated alerts ahead of the review date</li>
+<li>Recruitment analytics: time-to-hire, applications/shortlist/interview/offer funnel per vacancy, offer acceptance rate</li>
+</ul>
+
+<h3>B. Employee Records Management</h3>
+<ul>
+<li>Centralized digital personnel file per employee, with a secure document repository (ID, contract, certificates, police clearance, etc.) — each document tagged by category, with an expiry date where relevant and a "verified" status set by HR</li>
+<li>Contract lifecycle management: type (fixed-term, project-based, consultant, intern), start/end dates, renewal history, automated expiry alerts</li>
+<li>Organizational structure mapping: department, position/grade, duty station, reporting line — multi-location by design</li>
+<li>Staff categorization (permanent, fixed-term, consultant, intern, casual)</li>
+<li>Full employment history log per employee: position changes, salary adjustments, contract renewals, duty station transfers, project reassignments — each entry shows what changed, why, who approved it, and when</li>
+<li>Profile change history/audit: any change to personal data (phone, email, address) is logged with old/new value and approver</li>
+<li>Dependents &amp; emergency contacts: family members, relationship, DOB, passport number; flag as emergency contact and/or health-insurance-covered; insurance beneficiary allocation with percentage split that must total 100%</li>
+<li>HR analytics dashboard: headcount by department/duty station/employment type, gender &amp; diversity breakdown</li>
+</ul>
+
+<h3>C. Payroll &amp; Compensation</h3>
+<ul>
+<li>Salary grading and pay scale structure (grade → base salary band)</li>
+<li>Allowance configuration: housing, transport, hardship, risk, communication, per diem — tenant-defined, not hard-coded</li>
+<li>Deduction configuration: income tax (progressive bracket grid, configurable per country), health/life insurance, pension contribution, loan/advance repayment, absence deductions</li>
+<li>Staff loan and salary advance management with repayment scheduling</li>
+<li>Automatic payroll processing engine: pulls base salary + allowances − deductions per employee for the pay period</li>
+<li>Multi-level payroll approval workflow (mirrors the reference: Supervisor → HR Admin → Finance → Country Director, each level shows amount, employee count, and can approve/reject with a comment) before disbursement</li>
+<li>Payslip generation (PDF) with full earnings/deductions breakdown, available in the Employee Portal immediately after approval</li>
+<li>Bank transfer file export for disbursement</li>
+<li>Cost allocation: each employee's salary is split by percentage across one or more projects/donors/budget lines; payroll cost rolls up automatically into project and donor cost reports — this is the single most important link between HRM and Finance</li>
+<li>Payroll reconciliation and audit trail — every payroll run, every approval, every amount, immutable</li>
+<li>Multi-currency support</li>
+</ul>
+
+<h3>D. Leave &amp; Attendance</h3>
+<ul>
+<li>Configurable leave types per tenant — annual, sick, maternity/paternity, emergency, unpaid, compassionate, plus custom types</li>
+<li>Automated leave accrual calculation and running balance (allocated / used / pending / available) shown per type</li>
+<li>Multi-level leave approval workflow, with status visible to the employee at every stage</li>
+<li>Team/org leave calendar; "who's on leave today" widget for supervisors and HR</li>
+<li>Attendance tracking (manual or, later, biometric-integration-ready)</li>
+<li>Monthly timesheets with two modes: full-time (one project) or percentage split across multiple projects/donors for the month — directly feeds payroll cost allocation and Finance's project financial reports</li>
+<li>Multi-level timesheet approval (supervisor, then cost-allocation review)</li>
+<li>Leave &amp; timesheet analytics/reporting</li>
+</ul>
+
+<h3>E. Performance Management</h3>
+<ul>
+<li>Performance cycle management (e.g. "2026 Annual Review", "Mid-Year Review") with a defined deadline, visible to all in-scope employees</li>
+<li>Objective/KPI setting per employee, each with a weight (%), a progress percentage, and status (on track / ahead / at risk)</li>
+<li>Structured self-assessment form: rate each objective against a defined scale (e.g. Improvement Needed / Meets / Exceeds / Outstanding), provide evidence/comments, set development goals, sign digitally, submit to supervisor</li>
+<li>Supervisor review: rate the same objectives, add overall rating, key strengths, development areas, additional comments</li>
+<li>Performance history archive per employee, with past cycle ratings visible over time</li>
+<li>Promotion recommendation tracking and contract-renewal alerts tied to performance outcomes</li>
+<li>Reporting dashboard: average rating by department, completion rate of the current cycle, ratings distribution</li>
+</ul>
+
+<h3>F. Training &amp; Development</h3>
+<ul>
+<li>Individual capacity-building plan per employee, with an annual training-hours target and tracked progress</li>
+<li>Training catalog with priority, category (compliance, technical, soft skills, professional development), and target date</li>
+<li>Mandatory/compliance training tracking with due dates — e.g. PSEA (Protection from Sexual Exploitation and Abuse) and Code of Conduct refreshers — flagged distinctly from optional development training</li>
+<li>Skills assessment and tracking by category (technical, sector/protection-specific, soft skills), with a percentage proficiency score and last-assessed date</li>
+<li>Completed training history with certificates (downloadable), provider, completion date, score, and expiry where applicable, with "expiring soon" alerts</li>
+<li>Training evaluation and completion reporting</li>
+</ul>
+
+<h3>G. Asset Management (staff-linked)</h3>
+<ul>
+<li>Registry of assets issued to each employee (laptop, phone, vehicle access, office keys, etc.) with serial number, value, assigned date, and condition</li>
+<li>Annual/periodic asset verification cycle: employee confirms possession and condition of each assigned asset within a defined window; HR/Asset Manager tracks completion (verified / pending) org-wide</li>
+<li>Issue reporting (damage/loss) from the employee portal</li>
+<li>Full asset history per employee, including returned/reassigned items and reason</li>
+<li>Automatic flag for unreturned assets at contract end, blocking final clearance until resolved</li>
+<li>Shares its underlying asset registry with the <a href="06-module-procurement-logistics.html">Procurement &amp; Logistics</a> module — an asset exists once, whether it's tracked as organizational inventory or currently assigned to a staff member</li>
+</ul>
+
+<h3 id="safeguarding">H. Safeguarding &amp; Grievance Management</h3>
+<ul>
+<li>Digital safeguarding policy acknowledgement, required at onboarding and on policy updates</li>
+<li>Confidential incident/complaint submission — from any employee, with an explicit anonymous-submission option that generates a secure reference number for follow-up without revealing identity</li>
+<li>Case categorization (PSEA violation, harassment, fraud &amp; corruption, discrimination, code-of-conduct breach) and severity/priority</li>
+<li>Restricted, role-based case visibility — see the <a href="03-roles-and-permissions.html">confidentiality tiers</a>; only designated Safeguarding Focal Points and the Country Director see full case detail</li>
+<li>Structured investigation workflow with defined stages: reported → preliminary review → investigator assigned → evidence collection → investigation report → decision &amp; action → case closure</li>
+<li>Evidence/document upload, witness tracking, investigator assignment, and full timeline history per case</li>
+<li>Compliance dashboard: training completion, policy acknowledgement status, and case summary counts — without exposing case content to unauthorized roles</li>
+</ul>
+
+<h3>I. Exit Management</h3>
+<ul>
+<li>Exit initiation from either a resigning employee or HR, capturing exit type (resignation, contract expiry, termination), notice date, and last working day</li>
+<li>Standard exit checklist with progress tracking: asset return, exit interview, document handover, final payroll, clearance certificate</li>
+<li>Contract-expiry early warning: employees with contracts ending soon surface automatically so HR can act before the last working day, not after</li>
+<li>Exit completes only once every checklist item clears — blocks final payroll disbursement until asset return and clearance are confirmed</li>
+<li>Completed-exits archive for institutional record and rehire-eligibility reference</li>
+</ul>
+
+<h2>Cross-cutting HR reports</h2>
+<ul>
+<li>Headcount by department, duty station, employment type, gender</li>
+<li>Payroll cost by donor / project / department (the direct link into Finance's project financial reports)</li>
+<li>Leave utilization and liability (accrued-but-unused leave = a financial liability Finance needs visibility into)</li>
+<li>Contract expiry / turnover report</li>
+<li>Training compliance and safeguarding compliance summaries</li>
+<li>Full audit trail export for any HR or payroll transaction</li>
+</ul>
+
+<h2>Key workflows</h2>
+
+<h3>Recruitment to hire</h3>
+<ol class="steps">
+<li><h4>Vacancy request</h4><p>Hiring manager submits a vacancy request; routed through the tenant's configured approval chain before posting.</p></li>
+<li><h4>Posting &amp; applications</h4><p>Vacancy published internally/externally; applications collected into the ATS.</p></li>
+<li><h4>Shortlisting &amp; interview</h4><p>Panel scores candidates against a defined matrix; interview notes attached per candidate.</p></li>
+<li><h4>Offer</h4><p>Offer letter auto-generated from the selected candidate's data and the position's salary grade; sent for acceptance.</p></li>
+<li><h4>Onboarding</h4><p>Accepted candidate becomes a new employee record; onboarding checklist assigned; probation period starts with an automated review-date alert.</p></li>
+</ol>
+
+<h3>Payroll run to disbursement</h3>
+<ol class="steps">
+<li><h4>Generate</h4><p>Payroll officer selects the pay period and employee scope; the engine calculates gross, allowances, deductions, and net pay per employee from current salary/allowance/deduction configuration and cost-allocation percentages.</p></li>
+<li><h4>Review</h4><p>Preview totals (gross, deductions, net) and per-employee/per-project breakdown before submitting for approval.</p></li>
+<li><h4>Approve</h4><p>Payroll moves through the configured multi-level chain (e.g. Supervisor → HR Admin → Finance → Country Director), each level able to approve or reject with a comment; full status visible throughout.</p></li>
+<li><h4>Disburse</h4><p>On final approval: payslips generate and publish to the Employee Portal, a bank transfer file exports, and cost is posted into Finance's general ledger against the correct donor/project cost centers.</p></li>
+</ol>
+
+<h2 id="data-entities">Data entities specific to HRM</h2>
+<p>Shared/global entities (Employee, Department, Duty Station, Project, Donor) live in the core data model — see <a href="08-data-model.html">Data Model</a>. HRM-specific entities:</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Entity</th><th>Key attributes</th></tr></thead>
+<tbody>
+<tr><td>Vacancy / Application / Candidate</td><td>position, grade, status, score, panel notes</td></tr>
+<tr><td>Contract</td><td>employee, type, start/end date, salary grade, renewal history</td></tr>
+<tr><td>Salary Grade / Allowance Type / Deduction Type / Tax Bracket</td><td>tenant-configurable pay structure components</td></tr>
+<tr><td>Payroll Run / Payslip / Cost Allocation Line</td><td>period, per-employee breakdown, per-project percentage split</td></tr>
+<tr><td>Leave Type / Leave Request / Leave Balance</td><td>employee, type, dates, days, approval status</td></tr>
+<tr><td>Timesheet / Timesheet Allocation Line</td><td>employee, period, hours, project split</td></tr>
+<tr><td>Performance Cycle / Objective / Assessment</td><td>employee, cycle, objectives, ratings, comments</td></tr>
+<tr><td>Training Record / Certificate</td><td>employee, course, provider, completion, expiry</td></tr>
+<tr><td>Employee Asset Assignment</td><td>employee, asset (shared registry), assigned/returned dates, condition</td></tr>
+<tr><td>Safeguarding Case</td><td>type, severity, status, investigator, restricted-access flag, timeline</td></tr>
+<tr><td>Exit Record</td><td>employee, type, notice/last-day dates, checklist status</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="page-nav">
+  <a href="03-roles-and-permissions.html"><span class="dir">Back</span>Roles, Portals &amp; Permissions</a>
+  <a class="next" href="05-module-finance.html"><span class="dir">Next</span>Module: Finance &amp; Donor Compliance →</a>
+</div>
+
+</div>
+</main>
+</div>
+</body>
+</html>
