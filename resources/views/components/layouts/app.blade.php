@@ -15,11 +15,11 @@
         Payroll, Finance, Procurement, Programs, Super Admin — see docs/03-roles-and-permissions.md)
         gets its own sidebar navigation built in later phases; this shell just proves
         the sidebar + content layout pattern and the Livewire/Tailwind stack work
-        together end to end (Build Plan Step 0.2).
+        together end to end (Build Plan Step 0.2), now auth-aware (Step 0.4).
     --}}
     <div class="flex min-h-screen flex-col md:flex-row">
 
-        <aside class="w-full shrink-0 border-b border-slate-200 bg-white p-4 md:w-64 md:border-b-0 md:border-r md:p-6">
+        <aside class="flex w-full shrink-0 flex-col border-b border-slate-200 bg-white p-4 md:h-screen md:w-64 md:border-b-0 md:border-r md:p-6">
             <div class="mb-6">
                 <p class="text-sm font-extrabold tracking-tight text-slate-900">{{ config('app.name') }}</p>
                 <p class="text-xs text-slate-500">Planning phase build</p>
@@ -31,6 +31,19 @@
                 <span class="block rounded-lg px-3 py-2 text-slate-400">Procurement &amp; Logistics &mdash; not built yet</span>
                 <span class="block rounded-lg px-3 py-2 text-slate-400">Programs &mdash; not built yet</span>
             </nav>
+
+            @auth
+                <div class="mt-auto border-t border-slate-100 pt-4 md:mt-6">
+                    <p class="truncate text-sm font-medium text-slate-900">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-xs text-slate-500">{{ auth()->user()->email }}</p>
+                    <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                        @csrf
+                        <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-slate-900">
+                            Log out
+                        </button>
+                    </form>
+                </div>
+            @endauth
         </aside>
 
         <main class="flex-1 p-4 md:p-10">

@@ -48,6 +48,20 @@ test('creating a record auto-fills tenant_id from the current tenant context', f
     expect($user->tenant_id)->toBe($tenant->id);
 });
 
+test('explicitly creating a record with tenant_id null is respected, not overwritten by context', function () {
+    // Regression test for a real bug (see docs/build/DECISIONS.md D-020):
+    // BelongsToTenant's auto-fill originally used empty($model->tenant_id),
+    // which can't distinguish "never mentioned tenant_id" from "explicitly
+    // set it to null" (a Super Admin account) — so an ambient tenant
+    // context silently overwrote an explicit null with itself.
+    $tenant = Tenant::factory()->create();
+    app(TenantContext::class)->set($tenant);
+
+    $superAdmin = User::factory()->create(['tenant_id' => null]);
+
+    expect($superAdmin->tenant_id)->toBeNull();
+});
+
 test('an explicitly set tenant_id is not overridden by the current context', function () {
     $tenantA = Tenant::factory()->create();
     $tenantB = Tenant::factory()->create();

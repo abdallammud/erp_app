@@ -145,5 +145,40 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Consequence:** Larastan flags the trait as "used zero times" since nothing in `app/` uses it yet — a real, if temporary, false positive. Suppressed via a scoped, commented `ignoreErrors` entry in `phpstan.neon` (not an inline `@phpstan-ignore` comment) targeted at that exact file, with a note to remove it once Phase 1 gives the trait a real consumer. The mechanism itself is proven correct now via a test-only job class in `tests/Feature/Tenancy/TenantAwareQueueTest.php`.
 - **Status:** Confirmed. Revisit the phpstan ignore entry as soon as a real job in `app/Jobs` uses the trait.
 
+### D-017
+
+**Breeze's own generated auth scaffolding (login/register/password-reset/etc.) uses Livewire Volt single-file components; our components stay class-based per D-013.**
+
+- **Context:** `php artisan breeze:install livewire` (the class-based stack, matching D-013) still generates its auth *pages* as Volt components (`routes/auth.php` uses `Volt::route(...)`), because Breeze's Livewire stack authors auth pages that way regardless of the class/Volt choice, which governs Breeze's *other* generated components (profile forms).
+- **Decision:** accept Volt for this specific, narrow case — framework-generated auth boilerplate we rarely touch — rather than hand-converting it to class-based components. D-013's reasoning (easier to unit-test substantial business logic, more familiar structure) doesn't really apply to standard login/register forms.
+- **Status:** Confirmed — a deliberate, scoped exception to D-013, not a reversal of it. Our own future components remain class-based.
+
+### D-018
+
+**No public self-registration route.**
+
+- **Context:** Breeze's installer scaffolds a `/register` route and page by default. Self-serve tenant/account signup is explicitly out of scope until Phase 5 (`docs/01-vision-and-scope.md`) — accounts are created by HR Admin (Phase 1) or Super Admin (Phase 0 Step 0.11), always with a `tenant_id` already known.
+- **Decision:** removed the `/register` route and its Volt page entirely, along with the `RegistrationTest.php` that tested it, rather than leaving an unrouted, untested, or (worse) silently-live signup path sitting in the codebase.
+- **Consequence:** also removed Breeze's default public "welcome" marketing page — an internal, no-signup business app has no need for one. `/` redirects straight to `/dashboard`, which redirects guests to `/login`.
+- **Status:** Confirmed.
+
+### D-019
+
+**Spatie's "teams" feature is off — roles/permissions are a single global catalog, not duplicated per tenant.**
+
+- **Context:** `spatie/laravel-permission` ships a "teams" mode for exactly the multi-tenant scenario this platform has, scoping role/permission assignment to a `team_id` column.
+- **Decision:** leave it off (the package default). A role *assignment* is already unambiguous without it: the `User` a role is assigned to is itself tenant-scoped (`BelongsToTenant`), and — per `docs/02-architecture.md` — a person working across two tenants gets two separate accounts, never one account with different roles in different tenants. Teams-mode would only earn its complexity if that assumption ever changed.
+- **Consequence:** the role/permission *catalog* (names, and which permissions each role has) is global and identical for every tenant right now — matches `docs/03-roles-and-permissions.md`'s matrix being one fixed table, not a per-tenant configurable one. Per-tenant-customizable roles, if ever needed, is a later-phase evolution (`docs/01-vision-and-scope.md`'s "configuration over customization" principle applied to RBAC itself) — not built now because nothing requires it yet.
+- **Status:** Confirmed.
+
+### D-020
+
+**Bug found and fixed: `BelongsToTenant`'s auto-fill used `empty($model->tenant_id)`, which can't tell "never set" apart from "explicitly set to null" — so an explicit null (a Super Admin account) was silently overwritten by whatever tenant happened to be ambient in context.**
+
+- **Context:** discovered while seeding a demo Super Admin account (`tenant_id: null`) immediately after creating tenant-scoped users in the same seeder run — the Super Admin ended up with the *previous* tenant's id instead of null, because `empty(null)` is `true`, so the auto-fill logic ran and overwrote it.
+- **Decision:** changed the check to `! array_key_exists('tenant_id', $model->getAttributes())` — true only when the attribute was never touched at all, which correctly leaves an explicit `null` alone while still auto-filling when the caller said nothing about `tenant_id`.
+- **Verification:** added a regression test (`tests/Feature/Tenancy/TenantIsolationTest.php`) creating a record with `tenant_id: null` while a tenant is active in context, asserting it stays null — this exact scenario, not just a generic re-run of the existing suite.
+- **Status:** Fixed and tested. Worth remembering as a general PHP lesson beyond this codebase: `empty()`/`is_null()` are the wrong tool whenever "not set" and "set to null/falsy" are meaningfully different states.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

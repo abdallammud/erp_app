@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests\Feature\Tenancy;
+
 use App\Jobs\Concerns\TenantAware;
 use App\Models\Tenant;
 use App\Models\User;

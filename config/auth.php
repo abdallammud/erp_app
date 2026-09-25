@@ -63,7 +63,11 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // Custom driver, not the built-in 'eloquent' — bypasses
+            // TenantScope for user lookups, which necessarily happen
+            // before any tenant is known. Registered in
+            // AppServiceProvider::boot(). See docs/build/DECISIONS.md D-015.
+            'driver' => 'tenant-aware-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 

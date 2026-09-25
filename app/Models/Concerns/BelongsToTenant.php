@@ -15,7 +15,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *    if no tenant is known — see TenantScope).
  *  - `tenant_id` is auto-filled from the current tenant on create, if the
  *    model didn't already set it explicitly (e.g. Super Admin tooling
- *    creating a record for a specific tenant it isn't "in").
+ *    creating a record for a specific tenant it isn't "in", or explicitly
+ *    creating a null-tenant Super Admin account).
+ *
+ * IMPORTANT: the "already set it explicitly" check must be
+ * `array_key_exists`, not `empty()`/`is_null()` — a caller explicitly
+ * passing `tenant_id: null` (a Super Admin account) is meaningfully
+ * different from never mentioning `tenant_id` at all, and `empty()`
+ * can't tell them apart. Got this wrong once already — see
+ * docs/build/DECISIONS.md D-020 and
+ * tests/Feature/Tenancy/TenantIsolationTest.php's regression test for it.
  *
  * Using models must have a `tenant_id` column.
  *
@@ -34,7 +43,7 @@ trait BelongsToTenant
         // against the concrete using-class, which the @property above
         // documents as having that column.
         static::creating(function (self $model): void {
-            if (empty($model->tenant_id)) {
+            if (! array_key_exists('tenant_id', $model->getAttributes())) {
                 $tenantId = app(TenantContext::class)->id();
 
                 if ($tenantId !== null) {

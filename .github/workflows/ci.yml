@@ -41,6 +41,9 @@ jobs:
 
       - name: Larastan (static analysis)
         run: composer analyse
+        # composer.json's `analyse` script already sets --memory-limit=512M —
+        # the codebase outgrew PHPStan's 128M default partway through
+        # Phase 0 Step 0.4.
 
       - name: Pest (tests)
         run: composer test

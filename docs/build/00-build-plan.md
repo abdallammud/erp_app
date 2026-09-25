@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2, 0.3 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2, 0.3, 0.4 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -36,14 +36,17 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — the cross-tenant-leakage test passes and runs in CI on every push (`composer ci`, part of `.github/workflows/ci.yml`). 10 tests total, Pint and Larastan (level 5) both clean.
 - **Design decisions made along the way** (see `DECISIONS.md`): the global scope fails closed with no tenant context (D-014) rather than silently showing everything; `tenant_id` on `users` is nullable + `restrictOnDelete()` for Super Admin accounts and safe tenant offboarding (D-014); `email` stays globally unique, and the auth guard's login-time lookup will need to explicitly bypass the tenant scope since tenant isn't known until the user is found — flagged as Step 0.4's responsibility, not solved here (D-015).
 
-### 0.4 Auth & RBAC
-- [ ] Laravel Fortify or Breeze for auth scaffolding (login, password reset, 2FA-ready)
-- [ ] **Wire up the login-time tenant resolution left open by Step 0.3** ([`DECISIONS.md#d-015`](DECISIONS.md#d-015)): the credential-lookup query must bypass `TenantScope` (tenant isn't known until the user is found by email), then `IdentifyTenant` middleware takes over for the rest of the request as already built
-- [ ] `users` table with `tenant_id` — done in 0.3, scoped to one tenant per login
-- [ ] Roles & permissions — install `spatie/laravel-permission` (see [`DECISIONS.md#d-004`](DECISIONS.md#d-004))
-- [ ] Seed the default role set from [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md): Employee, Supervisor, HR Admin, Payroll/Finance Officer, Procurement Officer, Program/M&E Officer, Country Director, Safeguarding Focal Point, Auditor/Donor, Super Admin
-- [ ] Policy/Gate scaffolding for the confidentiality tiers (Standard / Restricted / Highly restricted)
-- **DoD:** a seeded test tenant has one user per role; logging in as each user shows only the portal(s) they should see.
+### 0.4 Auth & RBAC — ✅ done 2026-09-25
+- [x] Laravel Breeze for auth scaffolding (login, password reset, 2FA-ready groundwork) — installed the class-based Livewire stack (`--stack=livewire`, matching D-013); Breeze's own auth *pages* turned out to use Volt regardless, accepted as a scoped exception (D-017). No self-registration — removed `/register` entirely, not part of this product's design (D-018).
+- [x] **Wired up the login-time tenant resolution left open by Step 0.3** ([`DECISIONS.md#d-015`](DECISIONS.md#d-015)): a custom `tenant-aware-eloquent` auth provider (`AppServiceProvider::boot()`) bypasses `TenantScope` for the credential lookup *and* the per-request session-reload lookup (`retrieveById` — easy to miss, but without this fix users would appear logged out on every request after the first). Proven correct by the full auth test suite, not just a login-once test.
+- [x] `users` table with `tenant_id` — done in 0.3, scoped to one tenant per login
+- [x] Roles & permissions — installed `spatie/laravel-permission` (see [`DECISIONS.md#d-004`](DECISIONS.md#d-004)), **without** its "teams" feature — not needed, and why, in [`DECISIONS.md#d-019`](DECISIONS.md#d-019). Added `HasRoles` to `User`. Typed catalogs: `App\Support\Authorization\Role` and `Permission` (PHP enums).
+- [x] Seeded the default role set from [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md) — all 10 roles, `database/seeders/RolesAndPermissionsSeeder.php`, with permissions assigned per the doc's access matrix (representative, module-level permissions — fine-grained record-level scoping is each future module's own Policy work, not this seeder's job). Idempotent (`firstOrCreate`/`syncPermissions` throughout).
+- [x] Policy/Gate scaffolding for the confidentiality tiers — `App\Providers\AuthorizationServiceProvider` defines Gates for the one domain that concretely has all three tiers today (Safeguarding — Standard/submit, Restricted/scoped, Highly Restricted/manage). Deliberately not a generic abstraction with no real consumer; the same compose-a-Gate-from-permissions pattern extends to other Restricted-tier data (salary, beneficiary PII, etc.) once those models exist in Phase 1+.
+- [x] `database/seeders/DemoTenantSeeder.php` — one demo tenant, one user per non-Super-Admin role (9) plus one Super Admin (tenant_id null), all `password`/`password` for local exploration only.
+- **Found and fixed a real bug along the way**, not just built the happy path: `BelongsToTenant`'s auto-fill couldn't distinguish "tenant_id never mentioned" from "explicitly set to null," so an ambient tenant context was silently overwriting an intentional `null` (a Super Admin account). Fixed, regression-tested — see [`DECISIONS.md#d-020`](DECISIONS.md#d-020).
+- **DoD:** ✅ met, with an honest caveat — a seeded demo tenant has one user per role (`DemoTenantSeeder`), and role-based permission differentiation is proven by tests (`tests/Feature/Authorization/`). "Logging in as each user shows only the portal(s) they should see" is proven at the *mechanism* level (correct permissions per role) rather than the *UI* level, since no role-specific portal UI exists yet beyond the one generic dashboard built in 0.2 — that's Phase 1+'s job, building on this foundation.
+- 41 tests total, Pint and Larastan (level 5, memory limit raised to 512M — the codebase outgrew the 128M default mid-step) both clean.
 
 ### 0.5 Core org-structure entities
 - [ ] `departments`, `duty_stations`, `positions` tables/models, tenant-scoped

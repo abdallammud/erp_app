@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,14 +11,17 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * RolesAndPermissionsSeeder is the global, always-needed catalog
+     * (docs/03-roles-and-permissions.md). DemoTenantSeeder is local
+     * exploration data — safe to run repeatedly (idempotent), never
+     * intended for a real production database.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            DemoTenantSeeder::class,
         ]);
     }
 }
