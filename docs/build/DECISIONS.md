@@ -117,5 +117,33 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Rationale:** this ERP's components carry substantial business logic (payroll calculation, multi-level approval routing, budget checks) — a dedicated PHP class file is easier to unit-test in isolation, gives better IDE support, and is the more familiar pattern for Laravel developers joining the project. SFCs are a good fit for small, presentation-heavy components, which describes little of what this app needs.
 - **Status:** Confirmed. First example: `app/Livewire/SystemStatus.php`.
 
+### D-014
+
+**The tenant global scope fails closed (zero rows) when no tenant context is set, rather than showing all tenants' data.**
+
+- **Context:** building `App\Models\Scopes\TenantScope` in Step 0.3, had to decide what happens when a tenant-scoped query runs with no `TenantContext` set — a state that will genuinely occur (a background job that forgot to set context, a console command run without one, a bug).
+- **Decision:** `TenantScope::apply()` adds `whereRaw('1 = 0')` when `TenantContext::id()` is null, instead of skipping the scope. A missing tenant context becomes a visibly broken feature (nothing shows up, easy to notice and debug) rather than a silent cross-tenant data leak (everything shows up, easy to miss until it's a real incident). A deliberate, legitimate cross-tenant query (Super Admin tooling) must opt out explicitly via `Model::withoutGlobalScope(TenantScope::class)`.
+- **Consequence for `users`:** `tenant_id` on `users` is nullable (Super Admin accounts have none) with `restrictOnDelete()` on the foreign key — a tenant can't be deleted while it still has users, forcing deliberate offboarding rather than a silent cascade that would orphan accounts. `tenants` itself uses soft deletes (not hard delete) for the same reason, per [`../08-data-model.md`](../08-data-model.md)'s soft-delete rule.
+- **Alternatives considered:** scope no-ops with no context set, returning unscoped (all-tenants) results (rejected — the dangerous default); throwing an exception when no context is set (rejected — too aggressive for legitimate no-tenant-yet moments like Super Admin tooling or early-boot code, and harder to reason about than "just returns nothing").
+- **Status:** Confirmed — proven by `tests/Feature/Tenancy/TenantIsolationTest.php`.
+
+### D-015
+
+**`users.email` stays globally unique (not per-tenant); login-time tenant resolution is explicitly deferred to Step 0.4, not solved in Step 0.3.**
+
+- **Context:** `BelongsToTenant`'s global scope (D-014) fails closed with no tenant context — but an auth guard's credential lookup (`User::where('email', $email)->first()`) necessarily runs *before* any tenant is known, since finding the user is how we'd learn their tenant in the first place. A naive tenant-scoped lookup would always find nobody, permanently.
+- **Decision:** keep `email` globally unique across all tenants (Laravel's own default, unchanged), so a credential lookup by email is unambiguous. That lookup must explicitly bypass the scope: `User::withoutGlobalScope(TenantScope::class)->where('email', $email)->first()`. Documented directly in `User`'s class docblock so Step 0.4 doesn't rediscover this the hard way. `IdentifyTenant` middleware (built in 0.3) then takes over for the rest of the request once the user — and therefore their tenant — is known.
+- **Alternatives considered:** per-tenant-unique email + a tenant-selector step on the login form (rejected for now — real added complexity and an extra user-facing step, for a benefit — the same person having identical email addresses at two different NGOs — that's an edge case docs/02-architecture.md already resolves a different way: "a consultant working across two tenants gets two separate accounts," which this decision assumes means two different email addresses too, not enforced in code but the practical expectation).
+- **Status:** Confirmed as the plan; not yet exercised in code — no login flow exists until Step 0.4, where this must be wired correctly as its first real task.
+
+### D-016
+
+**Queue tenancy is opt-in per job via a trait (`TenantAware`), not automatic for every queued job.**
+
+- **Context:** Step 0.3 needed "background jobs stay scoped correctly" (docs/02-architecture.md) built and proven before any real job exists to use it (real jobs — payroll runs, report generation — arrive in later phases).
+- **Decision:** `App\Jobs\Concerns\TenantAware` — a job opts in by calling `$this->captureCurrentTenant()` in its constructor and returning `$this->tenantMiddleware()` from `middleware()`. Not automatic/global, because not every job is tenant-scoped (e.g. a future platform-wide maintenance job legitimately has no single tenant) — an opt-in trait keeps that distinction explicit at each job's definition rather than needing a job to actively opt *out* of tenant behavior that doesn't apply to it.
+- **Consequence:** Larastan flags the trait as "used zero times" since nothing in `app/` uses it yet — a real, if temporary, false positive. Suppressed via a scoped, commented `ignoreErrors` entry in `phpstan.neon` (not an inline `@phpstan-ignore` comment) targeted at that exact file, with a note to remove it once Phase 1 gives the trait a real consumer. The mechanism itself is proven correct now via a test-only job class in `tests/Feature/Tenancy/TenantAwareQueueTest.php`.
+- **Status:** Confirmed. Revisit the phpstan ignore entry as soon as a real job in `app/Jobs` uses the trait.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

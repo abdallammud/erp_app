@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2, 0.3 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -27,17 +27,19 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - [x] Build the base layout shell: portal sidebar + content area pattern (matches the [portal concept](../03-roles-and-permissions.md)) — `resources/views/components/layouts/app.blade.php`, an anonymous Blade component (`<x-layouts.app>`), mobile-responsive (sidebar stacks above content below the `md` breakpoint)
 - **DoD:** ✅ met — `app/Livewire/SystemStatus.php` (class-based component, not Livewire 4's new single-file-component style — see [`DECISIONS.md#d-013`](DECISIONS.md#d-013)) renders inside the shell at `/`, proven interactive (a `wire:click` action that mutates state and re-renders) by `tests/Feature/SystemStatusTest.php`, not just a static render.
 
-### 0.3 Multi-tenancy foundation
-- [ ] `tenants` table + `Tenant` model (org profile: name, logo, countries of operation, default currency, fiscal year start)
-- [ ] `BelongsToTenant` trait + global Eloquent scope, applied via a base model or trait mixin
-- [ ] Tenant resolution: attach `tenant_id` to the authenticated user's session; middleware that sets "current tenant" context for the request
-- [ ] Tenant-aware queue connection so background jobs stay scoped
-- [ ] Automated test: two tenants' data is created, and a query from tenant A's context provably cannot see tenant B's rows
-- **DoD:** the cross-tenant-leakage test above passes and is part of the CI suite permanently (this is the single most important test in the whole system).
+### 0.3 Multi-tenancy foundation — ✅ done 2026-09-25
+- [x] `tenants` table + `Tenant` model (org profile: name, slug, logo, countries of operation, default currency, timezone, fiscal year start month, `is_active` + soft deletes for Super Admin suspend/offboard) — `app/Models/Tenant.php`
+- [x] `BelongsToTenant` trait + global Eloquent scope — `app/Models/Concerns/BelongsToTenant.php` + `app/Models/Scopes/TenantScope.php`, applied to `User` as the first (real, permanent — not a throwaway demo) tenant-scoped model, via `tenant_id` added to `users` in a follow-up migration
+- [x] Tenant resolution: `App\Support\Tenancy\TenantContext` (singleton) + `App\Http\Middleware\IdentifyTenant` (reads `$request->user()->tenant_id`, appended to the `web` middleware group). Currently a no-op in practice — no login flow exists until Step 0.4; wired and ready for it.
+- [x] Tenant-aware queue connection — `App\Support\Tenancy\SetsTenantContext` (job middleware) + `App\Jobs\Concerns\TenantAware` (trait for jobs to adopt), proven with a test-only job in `tests/Feature/Tenancy/TenantAwareQueueTest.php` (no real queued job exists yet — arrives with Phase 1)
+- [x] Automated test: two tenants' data is created, and a query from tenant A's context provably cannot see tenant B's rows — `tests/Feature/Tenancy/TenantIsolationTest.php`, 5 tests covering isolation, auto-fill-on-create, explicit-tenant-id-not-overridden, fail-closed-with-no-context, and the deliberate `withoutGlobalScope` bypass path
+- **DoD:** ✅ met — the cross-tenant-leakage test passes and runs in CI on every push (`composer ci`, part of `.github/workflows/ci.yml`). 10 tests total, Pint and Larastan (level 5) both clean.
+- **Design decisions made along the way** (see `DECISIONS.md`): the global scope fails closed with no tenant context (D-014) rather than silently showing everything; `tenant_id` on `users` is nullable + `restrictOnDelete()` for Super Admin accounts and safe tenant offboarding (D-014); `email` stays globally unique, and the auth guard's login-time lookup will need to explicitly bypass the tenant scope since tenant isn't known until the user is found — flagged as Step 0.4's responsibility, not solved here (D-015).
 
 ### 0.4 Auth & RBAC
 - [ ] Laravel Fortify or Breeze for auth scaffolding (login, password reset, 2FA-ready)
-- [ ] `users` table with `tenant_id`, scoped to one tenant per login
+- [ ] **Wire up the login-time tenant resolution left open by Step 0.3** ([`DECISIONS.md#d-015`](DECISIONS.md#d-015)): the credential-lookup query must bypass `TenantScope` (tenant isn't known until the user is found by email), then `IdentifyTenant` middleware takes over for the rest of the request as already built
+- [ ] `users` table with `tenant_id` — done in 0.3, scoped to one tenant per login
 - [ ] Roles & permissions — install `spatie/laravel-permission` (see [`DECISIONS.md#d-004`](DECISIONS.md#d-004))
 - [ ] Seed the default role set from [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md): Employee, Supervisor, HR Admin, Payroll/Finance Officer, Procurement Officer, Program/M&E Officer, Country Director, Safeguarding Focal Point, Auditor/Donor, Super Admin
 - [ ] Policy/Gate scaffolding for the confidentiality tiers (Standard / Restricted / Highly restricted)

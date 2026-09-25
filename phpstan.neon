@@ -9,7 +9,14 @@ parameters:
     level: 5
 
     ignoreErrors:
-        # - '#PHPDoc tag @var#'
-
-    excludePaths:
-        - app/*/*/FileToBeExcluded.php
+        # App\Jobs\Concerns\TenantAware is built ahead of its first real
+        # consumer — no queued job needs it yet, that arrives with Phase 1's
+        # payroll runs and similar. Larastan can't analyse a trait it sees
+        # zero usages of within `app/` (see the trait.unused identifier
+        # docs), so it flags a false "unused" warning. It IS exercised and
+        # proven correct by tests/Feature/Tenancy/TenantAwareQueueTest.php —
+        # just not from `app/`. Remove this once a real job in `app/Jobs`
+        # uses the trait (Phase 1).
+        -
+            identifier: trait.unused
+            path: app/Jobs/Concerns/TenantAware.php
