@@ -1,0 +1,252 @@
+# Build Plan — Step by Step
+
+The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadmap.md) but broken down to task level. We work through this top to bottom. Check items off as they're done; if a step's approach changes, update it here rather than letting this drift from reality.
+
+**How to use this doc:** each step is small enough to be one focused work session. Steps carry a short **Definition of Done (DoD)**. Anything a step depends on that isn't decided yet is marked with a link into [`QUESTIONS.md`](QUESTIONS.md) — the step proceeds under the documented default until answered.
+
+**Status legend:** `[ ]` not started · `[~]` in progress · `[x]` done
+
+---
+
+## Phase 0 — Platform Foundation
+
+*Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
+
+### 0.1 Project scaffolding
+- [ ] `composer create-project laravel/laravel` at repo root (alongside the existing `docs/` folder)
+- [ ] Set PHP version, install Laravel Pint (code style) and Larastan/PHPStan (static analysis)
+- [ ] Install Pest as the testing framework (see [Q6](QUESTIONS.md#q6))
+- [ ] `.env.example` with all config placeholders documented
+- [ ] Basic GitHub Actions CI: run Pint + tests on every push/PR
+- **DoD:** `php artisan serve` runs a fresh Laravel welcome page; `composer test` and `composer lint` both pass in CI.
+
+### 0.2 Frontend stack decision & setup
+- [ ] Confirm/finalize choice — default is **Livewire + Blade + Tailwind CSS** (see [Q1](QUESTIONS.md#q1))
+- [ ] Install and configure Tailwind, Livewire, Alpine.js (for light interactivity Livewire doesn't cover)
+- [ ] Build the base layout shell: portal sidebar + content area pattern (matches the [portal concept](../03-roles-and-permissions.md)), light/dark not required but a clean, mobile-responsive shell is
+- **DoD:** one working Livewire component rendered inside the shared layout, responsive down to phone width.
+
+### 0.3 Multi-tenancy foundation
+- [ ] `tenants` table + `Tenant` model (org profile: name, logo, countries of operation, default currency, fiscal year start)
+- [ ] `BelongsToTenant` trait + global Eloquent scope, applied via a base model or trait mixin
+- [ ] Tenant resolution: attach `tenant_id` to the authenticated user's session; middleware that sets "current tenant" context for the request
+- [ ] Tenant-aware queue connection so background jobs stay scoped
+- [ ] Automated test: two tenants' data is created, and a query from tenant A's context provably cannot see tenant B's rows
+- **DoD:** the cross-tenant-leakage test above passes and is part of the CI suite permanently (this is the single most important test in the whole system).
+
+### 0.4 Auth & RBAC
+- [ ] Laravel Fortify or Breeze for auth scaffolding (login, password reset, 2FA-ready)
+- [ ] `users` table with `tenant_id`, scoped to one tenant per login
+- [ ] Roles & permissions — install `spatie/laravel-permission` (see [Q?? — package choice log](DECISIONS.md#d-004))
+- [ ] Seed the default role set from [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md): Employee, Supervisor, HR Admin, Payroll/Finance Officer, Procurement Officer, Program/M&E Officer, Country Director, Safeguarding Focal Point, Auditor/Donor, Super Admin
+- [ ] Policy/Gate scaffolding for the confidentiality tiers (Standard / Restricted / Highly restricted)
+- **DoD:** a seeded test tenant has one user per role; logging in as each user shows only the portal(s) they should see.
+
+### 0.5 Core org-structure entities
+- [ ] `departments`, `duty_stations`, `positions` tables/models, tenant-scoped
+- [ ] Simple CRUD in the Super Admin / HR Admin portal for each
+- **DoD:** a tenant can define its own departments and duty stations without touching code.
+
+### 0.6 Approval workflow engine
+- [ ] Generic `ApprovalChain` (tenant + action-type + ordered steps) and `ApprovalInstance` (a specific request's progress through its chain) models
+- [ ] Segregation-of-duties rule: requester cannot appear as an approval step for their own request
+- [ ] Status API/component reused by every future approval UI (leave, payroll, requisition, etc.)
+- **DoD:** a trivial demo workflow (e.g. a "test request" type) can be configured with a 2-step chain, submitted, and approved/rejected end to end, with status visible throughout.
+
+### 0.7 Notification engine
+- [ ] `notifications` table (Laravel's built-in database notifications) + mail channel
+- [ ] Notification types seeded: approval needed, approval decision, contract/document expiring, budget threshold — even if only a couple have real triggers yet
+- [ ] SMS channel left as a documented extension point, not built in Phase 0 (see [Q — SMS gateway](QUESTIONS.md))
+- **DoD:** an in-app + email notification fires when the demo approval workflow above changes status.
+
+### 0.8 Audit log
+- [ ] Install `spatie/laravel-activitylog` (see [`DECISIONS.md`](DECISIONS.md#d-005)) or equivalent; wire into tenant-scoped models
+- [ ] Every create/update/delete on a tenant-scoped model logs who/when/what changed (old → new value)
+- **DoD:** editing any seeded record produces a visible, correct audit log entry.
+
+### 0.9 Document store
+- [ ] S3-compatible storage disk configured (local `public`/`local` disk for dev, S3 for staging/prod)
+- [ ] Generic `Document` model: polymorphic attachment to any record, category, expiry date, "verified" flag, tenant- and path-scoped
+- [ ] Encrypted-at-rest confirmed for the chosen storage backend
+- **DoD:** a file can be uploaded against a demo record, downloaded only by an authorized role, and is inaccessible cross-tenant.
+
+### 0.10 Reporting & export framework
+- [ ] Shared table/list component with Excel, CSV, PDF export baked in (used by every module's "Reports" screens later)
+- **DoD:** one demo dataset exports correctly in all three formats.
+
+### 0.11 Super Admin portal
+- [ ] Tenant CRUD (create/suspend/configure a tenant)
+- [ ] Cross-tenant system health view (basic — job queue status, error rate, storage usage)
+- [ ] Logged impersonation flow for support access into a tenant
+- **DoD:** a Super Admin can create a brand-new tenant end to end and it's immediately usable (empty but functional).
+
+**Phase 0 exit criteria:** two tenants exist in the same database, are provably isolated (0.3's test), each has its own users/roles/org structure, and the approval + notification + audit + document + export plumbing all work on at least one trivial record type. This is the foundation everything else is built on — don't start Phase 1 until this is solid.
+
+---
+
+## Phase 1 — HRM & Payroll
+
+*Full functional spec: [`../04-module-hrm.md`](../04-module-hrm.md).*
+
+### 1.1 Employee data model
+- [ ] `employees` table (links to `users` where the employee has portal access; not every historical employee needs a login)
+- [ ] `contracts` table: type, start/end date, salary grade link, renewal history
+- [ ] `salary_grades`, `allowance_types`, `deduction_types`, `tax_brackets` — all tenant-configurable
+- **DoD:** an employee can be created with a contract and a salary grade, entirely through UI, no seeders needed.
+
+### 1.2 Employee Portal shell + profile
+- [ ] Employee Portal navigation shell (per [Roles & Permissions](../03-roles-and-permissions.md))
+- [ ] Profile view/edit with change-history logging (old/new value + approver)
+- [ ] Dependents & emergency contacts, with insurance-beneficiary percentage-split validation (must total 100%)
+- [ ] Document repository per employee (using the Phase 0 Document store), with category + expiry + verified status
+- **DoD:** matches the reference behavior in the Nova HRM UI screens for My Profile → Dependents/Documents/History.
+
+### 1.3 Recruitment & Onboarding
+- [ ] Vacancy model + approval-chain-gated posting
+- [ ] Application/candidate intake, scoring matrix, interview notes
+- [ ] Offer letter generation from template
+- [ ] Onboarding checklist, probation tracking with alert
+- **DoD:** a vacancy can go from request → posted → shortlisted → offered → onboarded employee record, through the UI.
+
+### 1.4 Leave & Attendance
+- [ ] Tenant-configurable leave types + accrual rules
+- [ ] Leave request + multi-level approval (using the Phase 0 workflow engine)
+- [ ] Leave balance display (allocated/used/pending/available)
+- [ ] Timesheet: full-time or percentage-split-by-project, with multi-level approval
+- **DoD:** an employee can submit a leave request and a timesheet; a supervisor can approve both; balances update correctly.
+
+### 1.5 Payroll & Compensation
+- [ ] Allowance/deduction configuration UI
+- [ ] Payroll run engine: gross → allowances → deductions → net, per employee, per period
+- [ ] Cost-allocation percentage split per employee, feeding a `payroll_cost_allocations` table (this is the HRM↔Finance link — see [Data Model](../08-data-model.md))
+- [ ] Multi-level payroll approval workflow
+- [ ] Payslip PDF generation + Employee Portal access
+- [ ] Bank transfer file export
+- **DoD:** a full payroll run for a demo tenant, 5+ employees, multiple cost allocations, goes from generate → approve → disburse, and payslips are correct to the cent.
+
+### 1.6 Performance Management
+- [ ] Performance cycle, objectives/KPIs with weights, self-assessment form, supervisor review
+- [ ] Performance history archive
+- **DoD:** matches the self-assessment → supervisor review flow shown in the Nova HRM reference.
+
+### 1.7 Training & Development
+- [ ] Training records, mandatory/compliance flag (e.g. PSEA), skills tracking, certificates with expiry alerts
+- **DoD:** an employee's training tab shows completed/in-progress/mandatory-pending state correctly.
+
+### 1.8 Asset Management (staff-linked)
+- [ ] Uses the shared `Asset` entity — **depends on Phase 3's fuller asset registry for full CRUD**; for Phase 1, build the employee-facing assignment/verification UI against a minimal `Asset` table that Phase 3 will extend, not replace (see [`DECISIONS.md`](DECISIONS.md#d-006))
+- [ ] Annual asset verification cycle UI
+- **DoD:** an employee can view assigned assets and complete a verification cycle; HR Admin sees org-wide completion status.
+
+### 1.9 Safeguarding & Grievance
+- [ ] Confidential + anonymous complaint submission with reference number
+- [ ] Case workflow (reported → review → investigator → evidence → report → decision → closed)
+- [ ] Confidentiality-tier enforcement (Highly Restricted — see [Roles & Permissions](../03-roles-and-permissions.md#confidentiality-tiers))
+- **DoD:** a complaint submitted anonymously is genuinely untraceable to its submitter in the UI/DB for any role except what the design allows; a non-Focal-Point HR Admin cannot open case detail.
+
+### 1.10 Exit Management
+- [ ] Exit initiation, checklist (asset return, exit interview, document handover, final payroll, clearance), blocks completion until all items clear
+- **DoD:** an exit cannot be marked complete while an asset shows unreturned.
+
+### 1.11 HR reports & dashboards
+- [ ] Headcount, payroll cost by donor/project, leave utilization/liability, contract expiry, training/safeguarding compliance summaries
+- **DoD:** each report renders correctly against the demo tenant's data and exports via the Phase 0 export framework.
+
+### 1.12–1.14 Portals
+- [ ] Supervisor Portal (My Team, approvals, reviews)
+- [ ] HR Admin Portal (dashboard, employees, recruitment, leave config, performance, asset mgmt, exit mgmt, safeguarding, reports, settings)
+- [ ] Payroll Portal (generation, approval workflow, cost allocation, tax & insurance config, reports)
+- **DoD:** each portal matches its section of [Roles & Permissions](../03-roles-and-permissions.md).
+
+### 1.15 Testing & UAT
+- [ ] Unit tests for payroll math, leave accrual, approval routing
+- [ ] Integration test: payroll run → cost allocation records created correctly
+- [ ] UAT script written and run against a pilot tenant's real-shaped data (see [Roadmap → testing gate](../09-roadmap.md#testing--go-live-gate-every-phase))
+
+### 1.16 Documentation
+- [ ] User manual (per-portal), admin/technical manual, process flowcharts for recruitment/payroll/exit
+- [ ] Update this build plan and `CHANGELOG.md` marking Phase 1 complete
+
+**Phase 1 exit criteria:** a pilot tenant can run its full HR lifecycle — hire, manage leave/time, run payroll, review performance, train, and exit an employee — with correct multi-level approvals and a clean audit trail, entirely through the UI.
+
+---
+
+## Phase 2 — Finance & Donor Compliance
+
+*Full functional spec: [`../05-module-finance.md`](../05-module-finance.md).*
+
+- [ ] 2.1 Chart of accounts + cost center/budget line model, tenant-configurable
+- [ ] 2.2 General ledger + journal entries; wire up the Phase 1 payroll cost-allocation postings
+- [ ] 2.3 Budget management: donor budget entry, budget vs. actual, burn rate, versioned revisions
+- [ ] 2.4 Accounts Payable: vendor registry (shared with Phase 3), invoice processing, payment vouchers, withholding tax
+- [ ] 2.5 Accounts Receivable: grant/donor receivable & installment tracking
+- [ ] 2.6 Cash & bank management: multi-bank, reconciliation, petty cash/field cash control
+- [ ] 2.7 Fixed assets: capitalization, depreciation, transfer, disposal (shared registry with Phase 3)
+- [ ] 2.8 Procure-to-pay integration scaffolding (full link completes in Phase 3)
+- [ ] 2.9 Donor compliance report templates — start with one format end-to-end before generalizing (see [Q3](QUESTIONS.md#q3))
+- [ ] 2.10 Financial reports: trial balance, income & expenditure, balance sheet, project financial report, donor financial statement
+- [ ] 2.11 Finance Portal
+- [ ] 2.12 Testing & UAT; documentation
+- **DoD (phase):** a payroll run from Phase 1 is visible and correctly posted in the general ledger against the right project/donor cost center, and a project financial report reconciles.
+
+---
+
+## Phase 3 — Procurement & Logistics
+
+*Full functional spec: [`../06-module-procurement-logistics.md`](../06-module-procurement-logistics.md).*
+
+- [ ] 3.1 Procurement plan model
+- [ ] 3.2 Purchase requisition + multi-level approval + budget check against Phase 2's budget lines
+- [ ] 3.3 RFQ/tender + bid comparison
+- [ ] 3.4 Purchase order generation
+- [ ] 3.5 Supplier/vendor database — **reconcile with the Phase 2 AP vendor table into one shared entity** (see [`DECISIONS.md`](DECISIONS.md#d-007))
+- [ ] 3.6 Goods receipt notes, three-way match with PO + invoice
+- [ ] 3.7 Warehouse/inventory: multi-warehouse, batch/expiry, stock alerts, damaged/expired handling
+- [ ] 3.8 Asset & equipment registry — **extend the Phase 1 minimal `Asset` table into the full registry** (category, barcode/serial, maintenance schedule); staff-linked assignment already built in 1.8 should keep working unmodified
+- [ ] 3.9 Fleet management: vehicles, fuel, maintenance, driver/trip logs
+- [ ] 3.10 Logistics reports
+- [ ] 3.11 Procurement & Logistics Portal
+- [ ] 3.12 Testing & UAT; documentation
+- **DoD (phase):** a requisition → PO → GRN → invoice flow completes and posts correctly into Phase 2's Finance module; an asset issued to an employee in Phase 1's UI is the same row visible here.
+
+---
+
+## Phase 4 — Programs, Grants & M&E
+
+*Full functional spec: [`../07-module-programs.md`](../07-module-programs.md).*
+
+- [ ] 4.1 Project/grant lifecycle model, linked to Phase 2's budget envelope
+- [ ] 4.2 Activity planning & tracking against a results framework
+- [ ] 4.3 Beneficiary/household registration with unique-ID de-duplication
+- [ ] 4.4 Sector-specific tracking (tenant-configurable sector list)
+- [ ] 4.5 Distribution management, drawing stock from Phase 3's warehouse module
+- [ ] 4.6 Indicators & M&E dashboards
+- [ ] 4.7 Donor reporting dashboards (reads Finance's budget-utilization data, doesn't duplicate it)
+- [ ] 4.8 Programs Portal
+- [ ] 4.9 Testing & UAT; documentation
+- **DoD (phase):** a project created here shows correct staff allocation (from HRM), correct budget/actuals (from Finance), and correct stock depletion (from Procurement) for a distribution event — the full four-module loop closes.
+
+---
+
+## Phase 5 — Multi-tenant hardening & growth
+
+*Full detail: [`../09-roadmap.md`](../09-roadmap.md#phase-5--multi-tenant-hardening--growth).*
+
+- [ ] 5.1 Self-serve tenant onboarding flow
+- [ ] 5.2 Advanced cross-module BI/analytics dashboards
+- [ ] 5.3 Native mobile app planning (API already exists from Phase 0)
+- [ ] 5.4 Payment/disbursement integrations
+- [ ] 5.5 Biometric integration
+- [ ] 5.6 Additional donor report templates as needed
+
+---
+
+## Cross-cutting, ongoing (not a phase — do continuously)
+
+- [ ] Keep [`CHANGELOG.md`](CHANGELOG.md) updated every session
+- [ ] Log every new assumption in [`DECISIONS.md`](DECISIONS.md) the moment it's made, not retroactively
+- [ ] Log every open question in [`QUESTIONS.md`](QUESTIONS.md) rather than silently guessing on anything the user would plausibly want to weigh in on
+- [ ] Keep this build plan's checkboxes current — it's the team's shared source of truth for "where are we"
+
+---
+**See also:** [`../09-roadmap.md`](../09-roadmap.md) (the narrative version) · [`DECISIONS.md`](DECISIONS.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)
