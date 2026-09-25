@@ -7,15 +7,39 @@
 desktop.ini
 Thumbs.db
 
-# Laravel (once the app is scaffolded here)
+# Editor / IDE
+/.vscode
+/.idea
+/.nova
+/.zed
+/.cursor/
+/.codex
+.phpactor.json
+
+# Laravel
 /vendor
 /node_modules
+/public/build
 /public/hot
 /public/storage
+/public/fonts-manifest.dev.json
 /storage/*.key
+/storage/pail
+/storage/framework/testing/*
+!/storage/framework/testing/.gitkeep
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitkeep
 .env
 .env.backup
+.env.production
 .phpunit.result.cache
+/.phpunit.cache
+_ide_helper.php
+/auth.json
 docker-compose.override.yml
 Homestead.json
 Homestead.yaml
+
+# Local dev database (SQLite) — see docs/build/DECISIONS.md D-012
+/database/database.sqlite
+/database/database.sqlite-*

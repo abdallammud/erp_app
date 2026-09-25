@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+
+    # Start lenient; raise as the codebase matures (see docs/build/DECISIONS.md).
+    level: 5
+
+    ignoreErrors:
+        # - '#PHPDoc tag @var#'
+
+    excludePaths:
+        - app/*/*/FileToBeExcluded.php

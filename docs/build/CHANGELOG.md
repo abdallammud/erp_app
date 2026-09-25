@@ -4,6 +4,29 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-25 — Phase 0 Steps 0.1 & 0.2: project scaffolding, tooling, and the first working page
+
+User said "go ahead" to proceed on the documented defaults. Before touching anything, checked the actual build machine (`php -v`, `composer -V`, `node -v`, `npm -v`, `docker -v`): PHP 8.5.7, Composer, Node/npm all present; **no Docker** and no local MySQL/PostgreSQL server. This changed Step 0.1's environment from the planned Sail/Docker default — logged as [`DECISIONS.md#d-012`](DECISIONS.md#d-012), resolving [`QUESTIONS.md#q4`](QUESTIONS.md#q4) with an answer that differs from what was originally proposed.
+
+- **Step 0.1 (project scaffolding) — done.** Scaffolded a fresh Laravel app (`composer create-project laravel/laravel`) in a temp directory, then merged its files into the repo root alongside the existing `docs/`, source PDFs, and `.gitignore`/`README.md` (kept ours, discarded Laravel's stock versions) rather than running `create-project` directly against the non-empty repo root. Installed **Laravel 13.33.0**. Ran `composer install` fresh at the destination rather than copying `vendor/`. Set up `.env`, generated the app key, created and migrated a fresh SQLite database, confirmed `php artisan serve` boots and returns HTTP 200.
+- Added **Pest** (`pestphp/pest` + `pestphp/pest-plugin-laravel`) per [`DECISIONS.md#d-009`](DECISIONS.md#d-009) — the skeleton ships PHPUnit by default; ran `pest --init` and converted the two example tests from PHPUnit class syntax to Pest's functional syntax.
+- Added **Larastan** (`larastan/larastan`) for static analysis, `phpstan.neon` at level 5, zero errors against the fresh skeleton.
+- Confirmed **Pint** (already bundled in the Laravel 13 skeleton) passes clean.
+- Added `composer lint`, `lint:test`, `analyse`, and a combined `ci` script to `composer.json`; renamed the package from the generic `laravel/laravel` to `erp-app/ngo-erp-platform` with a real description.
+- Added `.github/workflows/ci.yml` — installs deps, migrates a fresh SQLite DB, runs Pint + Larastan + Pest on every push/PR to `main`.
+- Merged Laravel's default `.gitignore` entries into ours (editor/IDE dirs, `_ide_helper.php`, `/auth.json`, etc.) rather than picking one over the other; added the local SQLite database file to the ignore list.
+- Found that Laravel's default scaffold now ships `CLAUDE.md`/`AGENTS.md` files instructing an AI agent to auto-install `laravel/boost` (Laravel's official first-party AI-agent tooling). **Deliberately did not auto-run that instruction** — not part of the documented build plan, and `artisan boost:install` may prompt interactively. Replaced both files with real project-specific guidance pointing at `docs/`, noting the Boost option explicitly for later if wanted.
+- **Step 0.2 (frontend stack) — done.** Confirmed Livewire + Blade + Tailwind CSS (user approved the default; [`QUESTIONS.md#q1`](QUESTIONS.md#q1) resolved). Tailwind v4 was already wired into the Laravel 13 skeleton's `package.json`/`vite.config.js`; installed `livewire/livewire` (resolved to 4.4) via Composer.
+- Found Livewire 4's `make:livewire` now defaults to a new single-file-component style. Deliberately used `--class` instead to keep the classic separate PHP-class + Blade-view structure — logged as [`DECISIONS.md#d-013`](DECISIONS.md#d-013), reasoning: better fit for an app whose components carry real business logic, easier to unit-test, more familiar structure.
+- Built `resources/views/components/layouts/app.blade.php` — the shared portal shell (sidebar + content, mobile-responsive, stacks below `md`), and `app/Livewire/SystemStatus.php` (+ its Blade view) as the first real component: shows Laravel/PHP version, environment, server time, and a `wire:click`-driven refresh counter, proving Livewire interactivity (not just static render) end to end. Replaced the stock Laravel welcome page with this as the new home route (`/`).
+- Added `tests/Feature/SystemStatusTest.php` (initial render + the refresh interaction via `Livewire::test()`) and updated `tests/Feature/ExampleTest.php` to assert the dashboard renders and mounts the Livewire component. `composer ci` — 4 tests, Pint, and Larastan all pass.
+- Updated `docs/build/00-build-plan.md`: Steps 0.1 and 0.2 checked off with dated notes on what was actually built and where it deviated from plan; Phase 0 marked in-progress.
+- Updated `docs/build/QUESTIONS.md`: Q1, Q4, and Q6 moved to Resolved (Q4's answer — SQLite, not Sail — differs from what was originally proposed as the default, called out explicitly rather than quietly swapped in).
+- Logged `DECISIONS.md#d-012` (SQLite for local dev, not Sail) and `#d-013` (class-based Livewire components, not Livewire 4 SFCs).
+- Cleaned up: removed the temp scaffold directory, stray `.DS_Store` files, verified `.env`, `vendor/`, `node_modules/`, and `database.sqlite` are all correctly gitignored (not staged) before committing.
+
+**Still not started:** Phase 0 Steps 0.3–0.11 (multi-tenancy foundation, auth & RBAC, org structure, approval engine, notifications, audit log, document store, reporting export, Super Admin portal). Step 0.3 (multi-tenancy) is next and is the most architecturally significant step in Phase 0 — deserves its own focused session per the build plan's own "one step, one focused session" guidance, rather than being rushed in alongside 0.1/0.2.
+
 ## 2026-09-25 — Documentation restructure + build plan
 
 - Converted all 11 planning docs + index from `docs/*.html` to `docs/*.md` — canonical, lean-to-read format going forward. HTML files kept as a non-maintained browsable snapshot; [`../README.md`](../README.md) explains the split.

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    name: Lint, static analysis, tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, curl, zip, pdo_sqlite, sqlite3, fileinfo
+          coverage: none
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Create SQLite database
+        run: touch database/database.sqlite
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Pint (code style check)
+        run: composer lint:test
+
+      - name: Larastan (static analysis)
+        run: composer analyse
+
+      - name: Pest (tests)
+        run: composer test

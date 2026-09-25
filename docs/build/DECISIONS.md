@@ -99,5 +99,23 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Decision:** converted all 11 planning docs + index to Markdown ([`../README.md`](../README.md) explains the split). Established this decisions log, `QUESTIONS.md`, and `CHANGELOG.md` as living documents updated continuously, not written once.
 - **Status:** Confirmed (directly requested by the user).
 
+### D-012
+
+**Local development runs on SQLite via `php artisan serve`, not Laravel Sail — Docker is not available in this environment.**
+
+- **Context:** [`QUESTIONS.md#q4`](QUESTIONS.md#q4) defaulted to Laravel Sail (Docker). Checking the actual build environment at the start of Phase 0 (`php -v`, `composer -V`, `node -v`, `docker -v`) found PHP 8.5.7, Composer, and Node/npm all present and working, but no Docker installed and no local MySQL/PostgreSQL server running.
+- **Decision:** use SQLite for local development (`database/database.sqlite`, gitignored) with the built-in `php artisan serve`, rather than installing Docker to support Sail. This is Laravel's own zero-config default for new projects as of Laravel 13 — `composer create-project` already auto-created and migrated a `database.sqlite` file with no extra configuration needed. Staging/production still target a real MySQL or PostgreSQL server on managed infrastructure, per [`../02-architecture.md`](../02-architecture.md) — this decision is dev-environment-only.
+- **Alternatives considered:** installing Docker Desktop to unblock Sail (rejected for now — a heavyweight install not worth doing purely to match a documented default when SQLite fully satisfies Phase 0's needs); installing a local MySQL server directly via Homebrew (rejected as unnecessary extra setup versus SQLite, which Laravel already defaults to).
+- **Status:** Confirmed — supersedes the Sail default in [`QUESTIONS.md#q4`](QUESTIONS.md#q4), now marked resolved there. Revisit if a step later needs a MySQL/PostgreSQL-specific feature SQLite can't support (e.g. certain JSON column operations, PostgreSQL row-level security as a defense-in-depth layer per D-001) — cross that bridge in Phase 0 Step 0.3 if it comes up.
+
+### D-013
+
+**Livewire components are built class-based (separate PHP class + Blade view), not as Livewire 4's new single-file components (SFCs).**
+
+- **Context:** installed `livewire/livewire` and found the current version is 4.4, whose `make:livewire` now defaults to generating single-file components (`resources/views/components/⚡name.blade.php`, PHP anonymous-class-in-Blade syntax) — a new authoring style. The classic two-file structure (`app/Livewire/Name.php` + `resources/views/livewire/name.blade.php`) is still fully supported via `make:livewire --class`.
+- **Decision:** use `--class` (the classic structure) for all Livewire components in this project.
+- **Rationale:** this ERP's components carry substantial business logic (payroll calculation, multi-level approval routing, budget checks) — a dedicated PHP class file is easier to unit-test in isolation, gives better IDE support, and is the more familiar pattern for Laravel developers joining the project. SFCs are a good fit for small, presentation-heavy components, which describes little of what this app needs.
+- **Status:** Confirmed. First example: `app/Livewire/SystemStatus.php`.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

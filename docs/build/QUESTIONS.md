@@ -6,15 +6,6 @@ Things that need your input. Each has the default we're proceeding under until y
 
 ---
 
-### Q1
-
-**Frontend stack: Livewire + Blade + Tailwind, or Inertia.js + Vue/React?**
-
-- **Why it matters:** determines how Step 0.2 is built and the general shape of every UI screen after it. Expensive to change mid-build.
-- **Options:** (a) Livewire + Blade + Tailwind — one language, simpler for a small team, good fit for the form/dashboard-heavy reference UI. (b) Inertia + Vue — more familiar to devs coming from a Vue background, nicer for highly interactive components. (c) Inertia + React — same trade-off as (b) with React instead.
-- **Default in use:** (a) Livewire + Blade + Tailwind — see [`DECISIONS.md#d-003`](DECISIONS.md#d-003).
-- **Status:** Open.
-
 ### Q2
 
 **Deployment/hosting target: AWS specifically, or hosting-agnostic (any S3-compatible cloud / VPS)?**
@@ -33,31 +24,14 @@ Things that need your input. Each has the default we're proceeding under until y
 - **Default in use:** none yet — this step is far enough out (Phase 2) that we'll ask again when we get closer rather than guessing now.
 - **Status:** Open.
 
-### Q4
-
-**Local development environment: Laravel Sail (Docker), Valet, Herd, or plain local PHP/MySQL?**
-
-- **Why it matters:** affects Step 0.1 setup instructions and how reproducible the dev environment is across machines.
-- **Options:** (a) Laravel Sail — Docker-based, most portable, works the same on any machine. (b) Valet/Herd — macOS-native, faster local iteration, less portable. (c) Plain local PHP/MySQL install.
-- **Default in use:** (a) Sail — most portable given this is a Google-Drive-synced folder on macOS and the setup should work identically if the project ever moves machines.
-- **Status:** Open.
-
 ### Q5
 
 **Git workflow: direct commits to `main`, or feature branches + PRs per build-plan step?**
 
 - **Why it matters:** affects how we structure commits as we work through the build plan.
 - **Options:** (a) Direct to `main` — simplest, fine for a two-person team (you + me) on a private repo. (b) A branch per phase or per step, merged via PR — more overhead, gives a review checkpoint before each merge.
-- **Default in use:** undecided — will ask before Phase 0 coding starts, since it's cheap to set a convention now and expensive to change habits later.
+- **Default in use:** (a) direct to `main`, by observed practice — every commit so far (planning docs, Phase 0 Step 0.1/0.2) has gone straight to `main` without objection. Flagging explicitly now that real application code has started landing: say the word if you'd rather switch to a branch-per-step/PR flow before Phase 0 continues further.
 - **Status:** Open.
-
-### Q6
-
-**Package manager for the JS side: npm, pnpm, or yarn?**
-
-- **Why it matters:** minor, but worth fixing once rather than mixing lockfiles.
-- **Default in use:** npm — Laravel's own scaffolding defaults to it; no reason cited yet to deviate.
-- **Status:** Open (low priority — will just proceed with npm unless you object).
 
 ### Q7
 
@@ -71,7 +45,23 @@ Things that need your input. Each has the default we're proceeding under until y
 
 ## Resolved
 
-*(none yet — answers will be recorded here as questions get resolved)*
+### Q1
+
+**Frontend stack: Livewire + Blade + Tailwind, or Inertia.js + Vue/React?** *(Resolved 2026-09-25)*
+
+- **Answer:** confirmed — Livewire + Blade + Tailwind CSS. The user approved proceeding on this default; built in Build Plan Step 0.2 (`resources/views/components/layouts/app.blade.php`, `app/Livewire/SystemStatus.php`).
+
+### Q4
+
+**Local development environment: Laravel Sail (Docker), Valet, Herd, or plain local PHP/MySQL?** *(Resolved 2026-09-25 — answer differs from the originally-proposed default)*
+
+- **Answer:** none of the above — **SQLite** via plain `php artisan serve`. The originally-documented default was Sail, but checking the actual build machine at the start of Phase 0 found no Docker installed. Laravel 13's own skeleton already defaults new projects to SQLite with zero configuration, which fully covers Phase 0's needs without installing anything extra. See [`DECISIONS.md#d-012`](DECISIONS.md#d-012) for the full reasoning. Revisit for staging/production, which target real MySQL/PostgreSQL regardless.
+
+### Q6
+
+**Package manager for the JS side: npm, pnpm, or yarn?** *(Resolved 2026-09-25)*
+
+- **Answer:** npm, as defaulted — no objection raised, low-stakes choice. `package-lock.json` is the committed lockfile.
 
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`DECISIONS.md`](DECISIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

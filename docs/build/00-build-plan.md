@@ -8,23 +8,24 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation
+## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
-### 0.1 Project scaffolding
-- [ ] `composer create-project laravel/laravel` at repo root (alongside the existing `docs/` folder)
-- [ ] Set PHP version, install Laravel Pint (code style) and Larastan/PHPStan (static analysis)
-- [ ] Install Pest as the testing framework (see [Q6](QUESTIONS.md#q6))
-- [ ] `.env.example` with all config placeholders documented
-- [ ] Basic GitHub Actions CI: run Pint + tests on every push/PR
-- **DoD:** `php artisan serve` runs a fresh Laravel welcome page; `composer test` and `composer lint` both pass in CI.
+### 0.1 Project scaffolding — ✅ done 2026-09-25
+- [x] `composer create-project laravel/laravel` at repo root (alongside the existing `docs/` folder) — installed **Laravel 13.33.0**, PHP `^8.3` required (repo has 8.5.7)
+- [x] Set PHP version, install Laravel Pint (code style, shipped by default) and Larastan/PHPStan (static analysis, added — `phpstan.neon` at repo root, level 5)
+- [x] Install Pest as the testing framework (see [Q6](QUESTIONS.md#q6)) — installed, example tests converted from PHPUnit-class style to Pest functional style
+- [x] `.env.example` with all config placeholders documented — Laravel's default, `APP_NAME` set to "NGO ERP Platform"
+- [x] Basic GitHub Actions CI: run Pint + tests on every push/PR — `.github/workflows/ci.yml`, runs Pint, Larastan, and Pest
+- **DoD:** ✅ met — `php artisan serve` serves the real dashboard (not the stock welcome page, replaced — see 0.2); `composer lint:test`, `composer analyse`, and `composer test` (aliased together as `composer ci`) all pass locally and in CI.
+- **Deviation from plan:** no Docker available in this environment, so Laravel Sail was not used — see [`DECISIONS.md#d-012`](DECISIONS.md#d-012). Local dev runs on SQLite + `php artisan serve` directly.
 
-### 0.2 Frontend stack decision & setup
-- [ ] Confirm/finalize choice — default is **Livewire + Blade + Tailwind CSS** (see [Q1](QUESTIONS.md#q1))
-- [ ] Install and configure Tailwind, Livewire, Alpine.js (for light interactivity Livewire doesn't cover)
-- [ ] Build the base layout shell: portal sidebar + content area pattern (matches the [portal concept](../03-roles-and-permissions.md)), light/dark not required but a clean, mobile-responsive shell is
-- **DoD:** one working Livewire component rendered inside the shared layout, responsive down to phone width.
+### 0.2 Frontend stack decision & setup — ✅ done 2026-09-25
+- [x] Confirm/finalize choice — **Livewire + Blade + Tailwind CSS**, confirmed by the user (see [Q1](QUESTIONS.md#q1), now resolved)
+- [x] Install and configure Tailwind (shipped by default in the Laravel 13 skeleton, Tailwind v4, CSS-first config), Livewire 4.4 (installed via Composer); Alpine.js not added separately — Livewire 4 bundles its own JS runtime and no interactivity beyond Livewire has been needed yet
+- [x] Build the base layout shell: portal sidebar + content area pattern (matches the [portal concept](../03-roles-and-permissions.md)) — `resources/views/components/layouts/app.blade.php`, an anonymous Blade component (`<x-layouts.app>`), mobile-responsive (sidebar stacks above content below the `md` breakpoint)
+- **DoD:** ✅ met — `app/Livewire/SystemStatus.php` (class-based component, not Livewire 4's new single-file-component style — see [`DECISIONS.md#d-013`](DECISIONS.md#d-013)) renders inside the shell at `/`, proven interactive (a `wire:click` action that mutates state and re-renders) by `tests/Feature/SystemStatusTest.php`, not just a static render.
 
 ### 0.3 Multi-tenancy foundation
 - [ ] `tenants` table + `Tenant` model (org profile: name, logo, countries of operation, default currency, fiscal year start)
@@ -37,7 +38,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 ### 0.4 Auth & RBAC
 - [ ] Laravel Fortify or Breeze for auth scaffolding (login, password reset, 2FA-ready)
 - [ ] `users` table with `tenant_id`, scoped to one tenant per login
-- [ ] Roles & permissions — install `spatie/laravel-permission` (see [Q?? — package choice log](DECISIONS.md#d-004))
+- [ ] Roles & permissions — install `spatie/laravel-permission` (see [`DECISIONS.md#d-004`](DECISIONS.md#d-004))
 - [ ] Seed the default role set from [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md): Employee, Supervisor, HR Admin, Payroll/Finance Officer, Procurement Officer, Program/M&E Officer, Country Director, Safeguarding Focal Point, Auditor/Donor, Super Admin
 - [ ] Policy/Gate scaffolding for the confidentiality tiers (Standard / Restricted / Highly restricted)
 - **DoD:** a seeded test tenant has one user per role; logging in as each user shows only the portal(s) they should see.
