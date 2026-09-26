@@ -33,6 +33,14 @@ Route::view('approvals-demo', 'approvals-demo')
     ->middleware(['auth'])
     ->name('approvals-demo');
 
+// The first Employee Portal nav placeholder promoted to a real screen
+// (docs/build/00-build-plan.md Step 0.7) — every user's own in-app
+// notification inbox, backed by Laravel's built-in database
+// notifications.
+Route::view('notifications', 'notifications')
+    ->middleware(['auth'])
+    ->name('notifications');
+
 // Employee Portal nav items from the Nova Humanitarian HRM UI reference
 // (see docs/build/DECISIONS.md D-024) that don't have a real screen yet —
 // each gets its own route and an honest "coming in Phase 1" placeholder
@@ -53,7 +61,6 @@ foreach ([
     'safeguarding' => ['Safeguarding', 'shield-check'],
     'calendar' => ['Calendar', 'calendar'],
     'history' => ['History', 'history'],
-    'notifications' => ['Notifications', 'bell'],
 ] as $slug => [$label, $icon]) {
     Route::view($slug, 'coming-soon', ['feature' => $label, 'icon' => $icon])
         ->middleware(['auth'])

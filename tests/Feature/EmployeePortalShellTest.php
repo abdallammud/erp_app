@@ -75,11 +75,20 @@ test('every placeholder nav route is reachable and honestly labeled', function (
         'safeguarding' => 'Safeguarding',
         'calendar' => 'Calendar',
         'history' => 'History',
-        'notifications' => 'Notifications',
     ] as $path => $label) {
         $this->actingAs($user)->get("/{$path}")
             ->assertOk()
             ->assertSee($label)
             ->assertSee('Coming in Phase 1');
     }
+});
+
+test('notifications is a real screen, not a placeholder', function () {
+    $user = User::factory()->create();
+    $user->assignRole(Role::Employee->value);
+
+    $this->actingAs($user)->get('/notifications')
+        ->assertOk()
+        ->assertSee('Notifications')
+        ->assertDontSee('Coming in Phase 1');
 });

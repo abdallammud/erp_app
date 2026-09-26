@@ -39,3 +39,17 @@ parameters:
         -
             identifier: deadCode.unreachable
             path: app/Support/Approvals/ApprovalWorkflow.php
+
+        # Same method-based enum-cast false positive as above, hit again
+        # by Step 0.7's notification listener/class reading
+        # $instance->status / $step->status. Re-verified via tinker
+        # (see docs/build/DECISIONS.md) before ignoring.
+        -
+            identifier: notIdentical.alwaysTrue
+            path: app/Listeners/Approvals/NotifyEligibleApprovers.php
+        -
+            identifier: deadCode.unreachable
+            path: app/Listeners/Approvals/NotifyEligibleApprovers.php
+        -
+            identifier: identical.alwaysFalse
+            path: app/Notifications/Approvals/ApprovalDecisionMade.php

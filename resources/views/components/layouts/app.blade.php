@@ -52,6 +52,8 @@
                         ['route' => 'history', 'label' => 'History', 'icon' => 'history'],
                         ['route' => 'notifications', 'label' => 'Notifications', 'icon' => 'bell'],
                     ];
+
+                    $unreadNotifications = auth()->user()?->unreadNotifications()->count() ?? 0;
                 @endphp
 
                 @foreach ($navItems as $item)
@@ -59,6 +61,11 @@
                        class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 font-medium {{ request()->routeIs($item['route']) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
                         <x-icon :name="$item['icon']" class="h-[18px] w-[18px] shrink-0" />
                         <span class="truncate">{{ $item['label'] }}</span>
+                        @if ($item['route'] === 'notifications' && $unreadNotifications > 0)
+                            <span class="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[11px] font-semibold text-white">
+                                {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
+                            </span>
+                        @endif
                     </a>
                 @endforeach
             </nav>

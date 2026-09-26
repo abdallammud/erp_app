@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Auto-discovers handle*() listeners in app/Listeners by their
+    // type-hinted event parameter — Laravel's skeleton doesn't call this
+    // by default. Needed for App\Listeners\Approvals\* (Step 0.7) rather
+    // than hand-registering every event/listener pair. See
+    // docs/build/00-build-plan.md Step 0.7 and docs/build/DECISIONS.md.
+    ->withEvents()
     ->withMiddleware(function (Middleware $middleware): void {
         // Runs on every web request, after auth resolves $request->user().
         // No-ops until Step 0.4 (Auth & RBAC) adds login — see

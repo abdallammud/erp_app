@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.6 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.7 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -67,11 +67,18 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the live running server via `tinker` (submit → supervisor approves → HR Admin approves → status reads "approved", correct approver name and comment on each step, segregation of duties denies the requester), not just the test suite.
 - 69 tests total (up from 53), Pint and Larastan clean.
 
-### 0.7 Notification engine
-- [ ] `notifications` table (Laravel's built-in database notifications) + mail channel
-- [ ] Notification types seeded: approval needed, approval decision, contract/document expiring, budget threshold — even if only a couple have real triggers yet
-- [ ] SMS channel left as a documented extension point, not built in Phase 0 (see [Q — SMS gateway](QUESTIONS.md))
-- **DoD:** an in-app + email notification fires when the demo approval workflow above changes status.
+### 0.7 Notification engine ✅ done (2026-09-26)
+- [x] `notifications` table (Laravel's built-in database notifications, via `php artisan notifications:table`) + mail channel — `MAIL_MAILER=log` in dev, so email content is verifiable in `storage/logs/laravel.log` without real SMTP
+- [x] Notification types seeded: `App\Support\Notifications\NotificationType` enum — `ApprovalNeeded` and `ApprovalDecision` have real triggers; `DocumentExpiring`, `ContractExpiring`, `BudgetThreshold` are seeded as documented extension points for modules that don't exist yet (Phase 1+)
+- [x] SMS channel left as a documented extension point, not built in Phase 0 (see [Q — SMS gateway](QUESTIONS.md))
+- [x] Wired onto the approval engine's existing events without touching `ApprovalWorkflow`'s public API: added one new event (`ApprovalInstanceSubmitted`, fired at the end of `submit()` — needed so step-1's approver gets notified even though nobody has acted on anything yet) alongside the two events Step 0.6 already dispatched. Two listeners in `app/Listeners/Approvals/`: `NotifyEligibleApprovers` (submitted + non-final step approved → notifies whoever holds the new current step's role) and `NotifyRequesterOfDecision` (every step decision → notifies the requester, whether it's a mid-chain approval, the final approval, or a rejection).
+- [x] Listeners are synchronous, not `ShouldQueue` — `QUEUE_CONNECTION=database` has no worker running in this environment, so a queued notification would silently never appear. Revisit once a real queue worker is part of the deploy story.
+- [x] `App\Support\Approvals\ApprovalWorkflow::eligibleApprovers()` — new small helper (tenant + current-step-role + not-the-requester) shared by the listener and available to future "who can act on this" UI.
+- [x] First "coming soon" nav placeholder promoted to a real screen: `/notifications` (`App\Livewire\Notifications\Inbox`) — paginated list, mark-one-read, mark-all-read, unread badge on the sidebar nav item.
+- [x] Auto-discovery enabled: `bootstrap/app.php` didn't call `->withEvents()` at all before this step (Laravel's skeleton doesn't by default), so the two listeners above would have silently never fired. Added it — see [`DECISIONS.md#d-027`](DECISIONS.md#d-027).
+- **One real bug found by the CI loop itself (Larastan), not live testing:** the listener imported `Illuminate\Notifications\Notification` (the notification base class) instead of `Illuminate\Support\Facades\Notification` (the facade) for `Notification::send(...)` — a plain fatal error at runtime, caught immediately because Larastan correctly flagged `staticMethod.notFound` and a Pest test exercising the real listener failed with the actual `Error`. Fixed the import. See [`DECISIONS.md#d-028`](DECISIONS.md#d-028).
+- **DoD:** ✅ met — verified against the live running server, not just the test suite: logged in as the seeded `employee@demo.test` via a temporary local-only route, submitted a request through `tinker` calling the exact same `ApprovalWorkflow` methods the UI calls, and confirmed (a) a real `notifications` table row exists with the correct message and `read_at: null`, (b) `storage/logs/laravel.log` contains a fully-rendered HTML+text email with the correct subject/body, (c) `GET /notifications` renders both real notification messages and the correct unread count, and (d) the sidebar's unread badge shows the correct number on `/dashboard`.
+- 78 tests total (up from 69), Pint and Larastan clean.
 
 ### 0.8 Audit log
 - [ ] Install `spatie/laravel-activitylog` (see [`DECISIONS.md`](DECISIONS.md#d-005)) or equivalent; wire into tenant-scoped models

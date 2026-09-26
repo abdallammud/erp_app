@@ -3,6 +3,7 @@
 namespace App\Support\Approvals;
 
 use App\Events\Approvals\ApprovalInstanceFinished;
+use App\Events\Approvals\ApprovalInstanceSubmitted;
 use App\Events\Approvals\ApprovalStepActedOn;
 use App\Models\ApprovalChain;
 use App\Models\ApprovalInstance;
@@ -52,8 +53,35 @@ class ApprovalWorkflow
                 ]);
             }
 
-            return $instance->load('steps');
+            $instance = $instance->load('steps');
+
+            ApprovalInstanceSubmitted::dispatch($instance);
+
+            return $instance;
         });
+    }
+
+    /**
+     * Users in $instance's tenant who hold the role $instance's current
+     * step needs — i.e. who "approval needed" notifications go to.
+     * Shared by the notification listeners and, later, any "who can act
+     * on this" UI.
+     *
+     * @return Collection<int, User>
+     */
+    public function eligibleApprovers(ApprovalInstance $instance): Collection
+    {
+        $step = $instance->currentStep();
+
+        if (! $step) {
+            return new Collection;
+        }
+
+        return User::query()
+            ->where('tenant_id', $instance->tenant_id)
+            ->where('id', '!=', $instance->requester_id)
+            ->role($step->approver_role)
+            ->get();
     }
 
     /**
