@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ApprovalChain;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\User;
@@ -76,5 +77,27 @@ class DemoTenantSeeder extends Seeder
             ]
         );
         $superAdmin->syncRoles([RoleEnum::SuperAdmin->value]);
+
+        // Demo approval chain for the Step 0.6 "test_request" subject —
+        // see docs/build/00-build-plan.md. Real chains for leave/payroll/
+        // procurement arrive with those modules in Phase 1+; this proves
+        // the engine itself works, end to end, right now.
+        app(TenantContext::class)->set($tenant);
+
+        // Explicit tenant_id on every create() below — WithoutModelEvents
+        // (this class's own trait) suppresses the `creating` hook
+        // BelongsToTenant relies on for auto-fill, same reason the User
+        // creates above set it explicitly too.
+        $chain = ApprovalChain::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'action_type' => 'test_request'],
+            ['name' => 'Test Request Approval', 'is_active' => true]
+        );
+
+        if ($chain->steps()->doesntExist()) {
+            $chain->steps()->createMany([
+                ['tenant_id' => $tenant->id, 'sequence' => 1, 'approver_role' => RoleEnum::Supervisor->value, 'label' => 'Supervisor review'],
+                ['tenant_id' => $tenant->id, 'sequence' => 2, 'approver_role' => RoleEnum::HrAdmin->value, 'label' => 'HR Admin approval'],
+            ]);
+        }
     }
 }

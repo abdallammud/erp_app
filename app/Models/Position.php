@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * link to a tenant-configurable salary grade in Phase 1 (see this
  * model's migration for why that's not built yet).
  */
-#[Fillable(['title', 'grade', 'department_id', 'is_active'])]
+#[Fillable(['tenant_id', 'title', 'grade', 'department_id', 'is_active'])]
 class Position extends Model
 {
     /** @use HasFactory<PositionFactory> */

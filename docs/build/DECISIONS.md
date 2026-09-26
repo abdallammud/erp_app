@@ -216,5 +216,24 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Also kept honest:** one unified nav for now, not yet the four distinct role-specific portals (Employee/Supervisor/HR Admin/Payroll) the reference and `docs/03-roles-and-permissions.md` describe — that's real Phase 1 scope (Steps 1.12–1.14), not something to rush for a visual pass.
 - **Status:** Confirmed — a deliberate reprioritization, not a scope cut. Phase 0 Steps 0.6–0.11 remain to be done; resuming after this pass.
 
+### D-025
+
+**Standing rule: every `BelongsToTenant` model's `#[Fillable(...)]` list must include `tenant_id`.**
+
+- **Context:** `User`'s Fillable list included `tenant_id` from the start (Step 0.4), but every tenant-scoped model built since (Department, DutyStation, Position, and all four approval-engine tables) did not. This went unnoticed until `DemoTenantSeeder` — which runs under `DatabaseSeeder`'s `WithoutModelEvents` trait, so `BelongsToTenant`'s auto-fill-on-create `creating` hook never fires — tried to explicitly pass `tenant_id` to `ApprovalChain::firstOrCreate()` and it was silently dropped by mass assignment, surfacing as a `NOT NULL constraint failed` database error.
+- **Decision:** added `tenant_id` to every affected model's Fillable list (Department, DutyStation, Position, ApprovalChain, ApprovalChainStep, ApprovalInstance, ApprovalInstanceStep, TestRequest). Treat this as a standing rule for every future `BelongsToTenant` model, not a one-off fix — the auto-fill mechanism is a convenience for the common case; explicit assignment (seeders, Super Admin tooling, any `WithoutModelEvents` context) must always be possible too.
+- **Verification:** added a regression test creating an `ApprovalChain`/`ApprovalChainStep` with an explicit `tenant_id` for a tenant other than the current context, asserting it's respected — not just that the seeder happens to run without error.
+- **Status:** Fixed and tested. Third occurrence of the same underlying pattern as D-020 and D-023: a value that looks like it's just quietly not doing anything (an ignored mass-assignment key) rather than throwing — worth specifically watching for whenever a `create()`/`update()` call's array doesn't visibly round-trip into the persisted record.
+
+### D-026
+
+**Bug found and fixed only by manually driving the real page, not by the test suite: the Livewire `Demo::submit()` method never set `requester_id` at all.**
+
+- **Context:** `Demo::submit()` builds `TestRequest::create($validated)`, where `$validated` only ever contains `title` and `reason` (the two fields in `rules()`) — `requester_id` was never included anywhere in that method. Every test in `ApprovalWorkflowTest.php` used `TestRequest::factory()->create(['requester_id' => ...])` directly, which sets it via the factory — completely bypassing the actual bug, since the tests never exercised the real Livewire component's `submit()` method at all, only the underlying `ApprovalWorkflow` service.
+- **How it was actually caught:** manually driving the real running app via `tinker` (calling the service directly, the same way `submit()` should) to verify the end-to-end flow before considering the step done — not by the automated test suite, which was green the whole time this bug existed.
+- **Decision:** fixed `submit()` to explicitly pass `'requester_id' => Auth::id()`. Added `tenant_id` to `TestRequest`'s Fillable list at the same time (same class of issue as D-025) and `requester_id` too (it wasn't fillable at all).
+- **The more important fix:** added `tests/Feature/Approvals/DemoComponentTest.php`, testing the actual `Livewire\Livewire::test(Demo::class)` entry point end to end (submit → approve → approve, and the segregation-of-duties denial), not just the service layer underneath it. `ApprovalWorkflowTest.php` alone was a real gap: a service can be perfectly correct while the one piece of UI code that's supposed to call it is wired wrong, and a test suite that never calls through the actual entry point a user reaches won't catch that.
+- **Status:** Fixed and tested, at the correct layer this time. General lesson: for any component with a public method a UI calls, at least one test must call that exact method (or drive the component the way a user would) — testing only the service it delegates to leaves the wiring itself unverified.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

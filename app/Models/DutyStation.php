@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * multi-location operation. See docs/04-module-hrm.md and
  * docs/08-data-model.md's core entities.
  */
-#[Fillable(['name', 'code', 'country_code', 'city', 'address', 'is_active'])]
+#[Fillable(['tenant_id', 'name', 'code', 'country_code', 'city', 'address', 'is_active'])]
 class DutyStation extends Model
 {
     /** @use HasFactory<DutyStationFactory> */

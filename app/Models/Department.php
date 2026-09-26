@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * An org unit within one tenant — see docs/04-module-hrm.md's org
  * structure mapping and docs/08-data-model.md's core entities.
  */
-#[Fillable(['name', 'code', 'parent_department_id', 'is_active'])]
+#[Fillable(['tenant_id', 'name', 'code', 'parent_department_id', 'is_active'])]
 class Department extends Model
 {
     /** @use HasFactory<DepartmentFactory> */

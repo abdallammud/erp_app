@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.5 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.6 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -55,11 +55,17 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the actual running dev server (not just the test suite): HR Admin sees and can manage all three; Employee gets a real 403 hitting `/organization` directly.
 - 53 tests total (up from 41), Pint and Larastan clean.
 
-### 0.6 Approval workflow engine
-- [ ] Generic `ApprovalChain` (tenant + action-type + ordered steps) and `ApprovalInstance` (a specific request's progress through its chain) models
-- [ ] Segregation-of-duties rule: requester cannot appear as an approval step for their own request
-- [ ] Status API/component reused by every future approval UI (leave, payroll, requisition, etc.)
-- **DoD:** a trivial demo workflow (e.g. a "test request" type) can be configured with a 2-step chain, submitted, and approved/rejected end to end, with status visible throughout.
+### 0.6 Approval workflow engine — ✅ done 2026-09-26
+- [x] Generic `ApprovalChain`/`ApprovalChainStep` (tenant + action-type + ordered steps, role-based approvers) and `ApprovalInstance`/`ApprovalInstanceStep` (a specific request's progress through its chain) models — all tenant-scoped
+- [x] Segregation-of-duties rule: requester cannot act on their own request even holding the step's role — enforced in `App\Support\Approvals\ApprovalWorkflow::canAct()`, not left to callers to remember
+- [x] Status API/component reused by every future approval UI — `App\Support\Approvals\ApprovalWorkflow` (submit/approve/reject/canAct/awaitingActionBy) is the single entry point every module will call; `<x-approval-status>` Blade component renders any instance's timeline
+- [x] Domain events (`ApprovalStepActedOn`, `ApprovalInstanceFinished`) dispatched on every decision, ready for Step 0.7's notification listeners without touching this code again
+- [x] A real, working demo screen (`/approvals-demo`) — not just tests — where you can submit a test request and watch it move through a real 2-step chain (Supervisor → HR Admin), visible in the sidebar under "Engine demos"
+- **Two real bugs found — one only by manually driving the live app, not by the test suite:**
+  1. `tenant_id` wasn't in the Fillable list of any tenant-scoped model built since Step 0.4 except `User` — surfaced as a `NOT NULL constraint failed` when a `WithoutModelEvents` seeder needed to set it explicitly. Fixed across all 8 affected models, now a standing rule. See [`DECISIONS.md#d-025`](DECISIONS.md#d-025).
+  2. The Livewire `Demo::submit()` method never set `requester_id` at all — invisible to `ApprovalWorkflowTest.php` because every test there used the factory (which sets it), never the actual Livewire entry point. Caught only by driving the real page via `tinker` before calling this done. Fixed, and added `tests/Feature/Approvals/DemoComponentTest.php` testing the real component, not just the service underneath it. See [`DECISIONS.md#d-026`](DECISIONS.md#d-026) — an explicit lesson about testing at the right layer.
+- **DoD:** ✅ met — verified against the live running server via `tinker` (submit → supervisor approves → HR Admin approves → status reads "approved", correct approver name and comment on each step, segregation of duties denies the requester), not just the test suite.
+- 69 tests total (up from 53), Pint and Larastan clean.
 
 ### 0.7 Notification engine
 - [ ] `notifications` table (Laravel's built-in database notifications) + mail channel

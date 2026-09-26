@@ -25,6 +25,14 @@ Route::view('organization', 'organization')
     ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
     ->name('organization');
 
+// A real, working proof of the approval engine (docs/build/00-build-plan.md
+// Step 0.6) — open to any authenticated user, since anyone can submit a
+// test request; per-instance approval eligibility is enforced by
+// App\Support\Approvals\ApprovalWorkflow itself, not route middleware.
+Route::view('approvals-demo', 'approvals-demo')
+    ->middleware(['auth'])
+    ->name('approvals-demo');
+
 // Employee Portal nav items from the Nova Humanitarian HRM UI reference
 // (see docs/build/DECISIONS.md D-024) that don't have a real screen yet —
 // each gets its own route and an honest "coming in Phase 1" placeholder

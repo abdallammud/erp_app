@@ -76,6 +76,17 @@
                 </div>
             @endcan
 
+            <div class="mt-5 border-t border-slate-100 pt-4">
+                <p class="px-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Engine demos</p>
+                <nav class="mt-2 space-y-0.5 text-sm">
+                    <a href="{{ route('approvals-demo') }}"
+                       class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 font-medium {{ request()->routeIs('approvals-demo') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
+                        <x-icon name="shield-check" class="h-[18px] w-[18px] shrink-0" />
+                        <span>Approval Engine</span>
+                    </a>
+                </nav>
+            </div>
+
             @auth
                 <div class="mt-auto border-t border-slate-100 pt-4">
                     <p class="truncate text-sm font-medium text-slate-900">{{ auth()->user()->name }}</p>

@@ -20,3 +20,22 @@ parameters:
         -
             identifier: trait.unused
             path: app/Jobs/Concerns/TenantAware.php
+
+        # Larastan infers `$instance->status` as a plain `string` (the
+        # raw migration column type) rather than the ApprovalStatus enum
+        # declared in ApprovalInstance::casts() — it doesn't yet pick up
+        # enum casts declared via the newer method-based `casts(): array`
+        # syntax (only the older `protected $casts` property). Verified
+        # empirically via tinker that the enum cast is genuinely applied
+        # at runtime (`$instance->status` really is an ApprovalStatus
+        # instance) before adding this — a real bug would have been fixed,
+        # not ignored. Same pattern as the trait.unused entry above.
+        -
+            identifier: notIdentical.alwaysTrue
+            path: app/Support/Approvals/ApprovalWorkflow.php
+        -
+            identifier: identical.alwaysFalse
+            path: app/Support/Approvals/ApprovalWorkflow.php
+        -
+            identifier: deadCode.unreachable
+            path: app/Support/Approvals/ApprovalWorkflow.php
