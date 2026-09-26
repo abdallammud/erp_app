@@ -25,7 +25,16 @@
                 <p class="text-xs text-slate-500">Planning phase build</p>
             </div>
             <nav class="space-y-1 text-sm">
-                <span class="block rounded-lg bg-indigo-50 px-3 py-2 font-semibold text-indigo-700">Dashboard</span>
+                <a href="{{ route('dashboard') }}"
+                   class="block rounded-lg px-3 py-2 font-semibold {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
+                    Dashboard
+                </a>
+                @can(\App\Support\Authorization\Permission::HrmOrgView->value)
+                    <a href="{{ route('organization') }}"
+                       class="block rounded-lg px-3 py-2 font-semibold {{ request()->routeIs('organization') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
+                        Organization
+                    </a>
+                @endcan
                 <span class="block rounded-lg px-3 py-2 text-slate-400">HRM &mdash; not built yet</span>
                 <span class="block rounded-lg px-3 py-2 text-slate-400">Finance &mdash; not built yet</span>
                 <span class="block rounded-lg px-3 py-2 text-slate-400">Procurement &amp; Logistics &mdash; not built yet</span>

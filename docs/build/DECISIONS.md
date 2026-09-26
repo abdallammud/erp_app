@@ -180,5 +180,31 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Verification:** added a regression test (`tests/Feature/Tenancy/TenantIsolationTest.php`) creating a record with `tenant_id: null` while a tenant is active in context, asserting it stays null — this exact scenario, not just a generic re-run of the existing suite.
 - **Status:** Fixed and tested. Worth remembering as a general PHP lesson beyond this codebase: `empty()`/`is_null()` are the wrong tool whenever "not set" and "set to null/falsy" are meaningfully different states.
 
+### D-021
+
+**`tenant_id` foreign keys on tenant-scoped child tables (`departments`, `duty_stations`, `positions`) use `restrictOnDelete()`, matching `users.tenant_id` — established as the standing convention, not a one-off.**
+
+- **Context:** D-014 set `restrictOnDelete()` for `users.tenant_id` specifically. Building the next three tenant-scoped tables in Step 0.5 raised the question of whether that was a `users`-specific choice or a general rule.
+- **Decision:** `restrictOnDelete()` is now the default for every tenant-scoped table's `tenant_id` foreign key, not just `users`. A tenant is never silently taken down along with its data, for any table — offboarding stays a deliberate process. Apply this by default to new tenant-scoped migrations going forward without re-deciding it each time.
+- **Status:** Confirmed.
+
+### D-022
+
+**Bug found and fixed: a "can't be its own parent" guard fired on every plain create, not just self-referencing edits — because `null === null` is `true` in PHP.**
+
+- **Context:** `Departments`' `save()` checked `if ($this->parentDepartmentId === $this->editingId)` to stop a department being set as its own parent. On a plain **create** (not editing anything yet), both `editingId` and an unset `parentDepartmentId` default to `null` — so the check fired incorrectly on every single create with no parent selected, rejecting it with a validation error.
+- **Decision:** guard the check with `$this->editingId !== null &&`, so it only ever runs while actually editing an existing record.
+- **Verification:** caught immediately by `tests/Feature/Organization/DepartmentsTest.php`'s create/edit/delete test — the create step failed validation before the fix, passed after.
+- **Status:** Fixed and tested. The same general lesson as D-020, from a different angle: comparing two values that can both independently be "unset" (`null`) needs a guard for that shared-empty state, or the comparison accidentally means "neither is set" instead of the intended "these are the same real thing."
+
+### D-023
+
+**Bug found and fixed: the validated array's key didn't match the database column name, so a selected parent department silently never saved.**
+
+- **Context:** the Livewire property is `$parentDepartmentId` (camelCase, matching PHP/Livewire convention), but the column is `parent_department_id` (snake_case). `$this->validate()` returns an array keyed by property name; passing that straight to `Department::create()`/`update()` meant the `parentDepartmentId` key was silently dropped by mass assignment (not in `Department`'s `#[Fillable(...)]` list) — no error, the department just saved with no parent, every time, regardless of what was selected in the form.
+- **Decision:** explicitly remap `parentDepartmentId` → `parent_department_id` (and `department_id`, `country_code` in the other two components) before calling `create()`/`update()`. Same pattern already existed correctly in `DutyStations` and `Positions`; `Departments` was the one missed.
+- **Verification:** added a dedicated regression test (`tests/Feature/Organization/DepartmentsTest.php`) that creates a department with a parent selected and asserts the link is actually persisted and traversable (`$child->parent->name`) — not just that the form submits without error, which the earlier bug would have passed.
+- **Status:** Fixed and tested. General lesson: a silently-ignored mass-assignment key is a "no error, wrong result" class of bug — easy to miss without a test that checks the actual persisted *relationship*, not just that save() didn't throw.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1, 0.2, 0.3, 0.4 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.5 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -48,10 +48,12 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met, with an honest caveat — a seeded demo tenant has one user per role (`DemoTenantSeeder`), and role-based permission differentiation is proven by tests (`tests/Feature/Authorization/`). "Logging in as each user shows only the portal(s) they should see" is proven at the *mechanism* level (correct permissions per role) rather than the *UI* level, since no role-specific portal UI exists yet beyond the one generic dashboard built in 0.2 — that's Phase 1+'s job, building on this foundation.
 - 41 tests total, Pint and Larastan (level 5, memory limit raised to 512M — the codebase outgrew the 128M default mid-step) both clean.
 
-### 0.5 Core org-structure entities
-- [ ] `departments`, `duty_stations`, `positions` tables/models, tenant-scoped
-- [ ] Simple CRUD in the Super Admin / HR Admin portal for each
-- **DoD:** a tenant can define its own departments and duty stations without touching code.
+### 0.5 Core org-structure entities — ✅ done 2026-09-26
+- [x] `departments` (with optional light parent hierarchy), `duty_stations` (with country/city/address), `positions` (with free-text grade + optional department link) — all tenant-scoped, soft-deleted, `tenant_id` uses `restrictOnDelete()` per [`DECISIONS.md#d-021`](DECISIONS.md#d-021), now the standing convention for every tenant-scoped table
+- [x] Simple CRUD — no dedicated HR Admin portal exists yet (that's Phase 1), so this lives at `/organization` behind the `hrm.org.view`/`hrm.org.edit` permissions built in Step 0.4 (the first real feature to actually use them, not just prove them in tests). Three focused Livewire components (`App\Livewire\Organization\{Departments,DutyStations,Positions}`), one page, consistent list+create+edit+soft-delete pattern.
+- **Two real bugs found and fixed while building this, not just the happy path** — both from the same underlying lesson (a `null`/unset comparison or an unmapped key silently does the wrong thing instead of erroring loudly): a "can't be its own parent" guard that incorrectly fired on every plain create (`null === null`), and a validated-array key (`parentDepartmentId`) that never matched its database column (`parent_department_id`), so a selected parent silently never saved. See [`DECISIONS.md#d-022`](DECISIONS.md#d-022) and [`#d-023`](DECISIONS.md#d-023) — both caught by tests before this was called done, not after.
+- **DoD:** ✅ met — verified against the actual running dev server (not just the test suite): HR Admin sees and can manage all three; Employee gets a real 403 hitting `/organization` directly.
+- 53 tests total (up from 41), Pint and Larastan clean.
 
 ### 0.6 Approval workflow engine
 - [ ] Generic `ApprovalChain` (tenant + action-type + ordered steps) and `ApprovalInstance` (a specific request's progress through its chain) models

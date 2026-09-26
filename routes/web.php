@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Authorization\Permission;
 use Illuminate\Support\Facades\Route;
 
 // No public marketing page — this is an internal, multi-tenant business
@@ -15,5 +16,9 @@ Route::view('dashboard', 'dashboard')
 Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
+
+Route::view('organization', 'organization')
+    ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
+    ->name('organization');
 
 require __DIR__.'/auth.php';

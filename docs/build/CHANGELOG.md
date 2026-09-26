@@ -4,6 +4,21 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-26 — Ran the app for the user; Phase 0 Step 0.5: org-structure entities
+
+User asked to see the app running, then said to continue building.
+
+- **Ran the app live for the first time this session.** No browser-automation tool exists in this environment (`chromium-cli`, Playwright, Puppeteer — none installed), so true screenshots weren't possible. Drove the real running server with real HTTP requests instead: a temporary `local`-only `/__demo-login/{email}` route to get a real authenticated session (the actual Livewire login form isn't practical to drive without a browser), verified the real rendered login page, dashboard (correct signed-in user, live `SystemStatus` data), and logout — then immediately `git checkout`'d the temporary route away. Confirmed clean before continuing.
+- Since the user is on the same machine as this session (not a remote sandbox), also just started `php artisan serve` in the background and gave them the direct local URL to open in their own browser — the simpler, better answer once that was clear.
+- **Step 0.5 (org-structure entities) — done.** `departments` (optional light parent hierarchy), `duty_stations` (country/city/address), `positions` (free-text grade + optional department link) — all tenant-scoped, soft-deleted. Standardized `restrictOnDelete()` on `tenant_id` as the convention for *every* tenant-scoped table going forward, not just `users` — logged as D-021.
+- Built the CRUD at `/organization` behind the `hrm.org.view`/`hrm.org.edit` permissions from Step 0.4 — the first real feature to actually use that RBAC, not just prove it in isolated tests. Three Livewire components, one page, consistent pattern.
+- **Found and fixed two real bugs while building this**, both the same class of mistake from different angles: (1) a "department can't be its own parent" guard that incorrectly fired on every plain create, because both `editingId` and an unset `parentDepartmentId` default to `null`, and `null === null` is `true` in PHP — fixed by only checking while actually editing (D-022). (2) The validated array's key (`parentDepartmentId`) never matched the database column (`parent_department_id`), so a selected parent department silently never saved — no error, just silently wrong, caught by writing a regression test that checks the actual persisted relationship rather than just "did save() throw" (D-023).
+- Re-verified against the live running server after the fixes (not just the test suite): HR Admin sees and manages all three lists; an Employee hitting `/organization` directly gets a real 403.
+- Had one process mishap worth recording honestly: reverting the temporary demo-login route with `git checkout -- routes/web.php` also wiped the legitimate, not-yet-committed `/organization` route addition from earlier in the same session, since neither was committed yet and `checkout` reverts to the last commit, not "just the temporary part." Caught immediately by re-running the test suite, re-added the correct route, re-verified before moving on.
+- 53 tests total (up from 41), Pint and Larastan clean. Updated `docs/build/00-build-plan.md` (0.5 checked off), `DECISIONS.md` (D-021 through D-023), this changelog.
+
+**Still not started:** Phase 0 Steps 0.6–0.11 (approval workflow engine, notifications, audit log, document store, reporting export, Super Admin portal). **Q5** (git workflow) remains open.
+
 ## 2026-09-25 — Phase 0 Step 0.4: Auth & RBAC
 
 User said "keep going." This step had a genuinely hard problem to solve — not just wiring up a package — and turned up a real bug along the way, both documented in full below rather than glossed over.
