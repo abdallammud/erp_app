@@ -4,6 +4,20 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-26 — Visual pass: reskin the shell to match the Nova HRM reference (D-024)
+
+User said plainly the app didn't look like the reference UI they'd originally provided, after two rounds of "still waiting." Fair — everything built so far (tenancy, auth, RBAC, org-structure CRUD) was real but invisible, sitting behind a deliberately generic placeholder shell. Paused before Step 0.6 to fix that directly rather than defending the phase order.
+
+- Built `<x-icon>` — a small reusable Blade component with ~15 hand-written inline SVG icons (home, user, users, briefcase, calendar, chart-bar, clipboard-check, currency-dollar, clock, book-open, cube, shield-check, bell, building, history) — no icon library dependency, nothing to fetch.
+- Rebuilt the sidebar (`resources/views/components/layouts/app.blade.php`) with the full Employee Portal nav item set from the Nova HRM reference — Home, My Profile, Dependents, Projects, Leave, Performance, Self-Assessment, Payroll, Timesheet, Training, Assets, Asset Verification, Safeguarding, Calendar, History, Notifications — each with an icon, not the previous four gray "not built yet" labels. "Organization" moved into a separate, permission-gated "Administration" section below it.
+- Added a route for every nav item. Most don't have a real screen yet (no backing model until Phase 1) — each gets an honest, clearly-labeled "Coming in Phase 1" placeholder (`coming-soon.blade.php`) rather than a 404 or being hidden. Clicking through immediately shows the true state; the sidebar looks and navigates like the reference without pretending anything is more built than it is.
+- Built one genuinely real new screen: **My Profile** (`/my-profile`) — real signed-in user's name, email, tenant, role badges, member-since date, email-verification status, and an embedded, fully functional edit form (reuses Breeze's existing profile-update Livewire component — no new backend needed). Below it, four sections (Personal Details, Employment, Documents, History) styled consistently but honestly marked "Coming in Phase 1," each citing the relevant part of `docs/04-module-hrm.md`.
+- Fixed a real bug in the icon component while building it: the default `class` in `$attributes->merge([...])` would have applied alongside whatever size class each call site passed (e.g. both `h-5` and `h-[18px]` at once) — removed the default entirely since Tailwind utility classes don't override by source order, they'd both just apply.
+- Verified against the live running server, not just the test suite: full nav renders for a logged-in Employee, My Profile shows real data, a placeholder route renders its honest message. Used the same temporary demo-login-route pattern as before, but removed it surgically this time (edited the specific block back out) rather than a blanket `git checkout` — avoiding the exact mishap logged in yesterday's entry.
+- Added `tests/Feature/EmployeePortalShellTest.php` (4 tests) locking in: every nav label actually renders, Organization is correctly permission-gated, My Profile shows real (not placeholder) data, and every placeholder route is reachable and honestly labeled — not just a hard-coded list that could silently drift from the real routes.
+- Logged this whole reprioritization as [`DECISIONS.md#d-024`](DECISIONS.md#d-024): a deliberate pause, not a scope cut — Phase 0 Steps 0.6–0.11 still remain and resume next.
+- 57 tests total (up from 53), Pint and Larastan clean.
+
 ## 2026-09-26 — Ran the app for the user; Phase 0 Step 0.5: org-structure entities
 
 User asked to see the app running, then said to continue building.

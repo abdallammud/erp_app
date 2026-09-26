@@ -206,5 +206,15 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Verification:** added a dedicated regression test (`tests/Feature/Organization/DepartmentsTest.php`) that creates a department with a parent selected and asserts the link is actually persisted and traversable (`$child->parent->name`) — not just that the form submits without error, which the earlier bug would have passed.
 - **Status:** Fixed and tested. General lesson: a silently-ignored mass-assignment key is a "no error, wrong result" class of bug — easy to miss without a test that checks the actual persisted *relationship*, not just that save() didn't throw.
 
+### D-024
+
+**Deliberately paused strict build-plan phase order to deliver visual fidelity to the Nova HRM reference UI, before finishing Phase 0's remaining invisible-infrastructure steps.**
+
+- **Context:** the user asked to see the app running twice, and the second time said plainly the generic placeholder shell didn't look like the reference UI they'd originally provided. Phase 0 (tenancy, auth, RBAC, org-structure CRUD) is real, necessary work, but every bit of it is backend plumbing behind a deliberately generic shell — there was nothing yet that visually resembled the actual product.
+- **Decision:** pause before Step 0.6 (approval workflow engine) to reskin the portal shell — full icon sidebar, the Employee Portal's nav item set from the reference — and build one genuinely real screen (My Profile) rather than only placeholders, before returning to the remaining Phase 0 steps.
+- **Scope kept honest:** most of the reference's nav items (Dependents, Leave, Payroll, Timesheet, Training, Assets, Safeguarding, Calendar, History, Notifications) have no backing data model yet — those are real Phase 1 work, not something to fake now. Each gets a real route and a clearly-labeled "coming in Phase 1" placeholder rather than a raw 404 or, worse, being hidden — the sidebar looks and navigates like the reference; clicking through immediately shows the true state, not a fabricated one.
+- **Also kept honest:** one unified nav for now, not yet the four distinct role-specific portals (Employee/Supervisor/HR Admin/Payroll) the reference and `docs/03-roles-and-permissions.md` describe — that's real Phase 1 scope (Steps 1.12–1.14), not something to rush for a visual pass.
+- **Status:** Confirmed — a deliberate reprioritization, not a scope cut. Phase 0 Steps 0.6–0.11 remain to be done; resuming after this pass.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)
