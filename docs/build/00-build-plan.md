@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.7 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.8 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -80,10 +80,15 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the live running server, not just the test suite: logged in as the seeded `employee@demo.test` via a temporary local-only route, submitted a request through `tinker` calling the exact same `ApprovalWorkflow` methods the UI calls, and confirmed (a) a real `notifications` table row exists with the correct message and `read_at: null`, (b) `storage/logs/laravel.log` contains a fully-rendered HTML+text email with the correct subject/body, (c) `GET /notifications` renders both real notification messages and the correct unread count, and (d) the sidebar's unread badge shows the correct number on `/dashboard`.
 - 78 tests total (up from 69), Pint and Larastan clean.
 
-### 0.8 Audit log
-- [ ] Install `spatie/laravel-activitylog` (see [`DECISIONS.md`](DECISIONS.md#d-005)) or equivalent; wire into tenant-scoped models
-- [ ] Every create/update/delete on a tenant-scoped model logs who/when/what changed (old → new value)
-- **DoD:** editing any seeded record produces a visible, correct audit log entry.
+### 0.8 Audit log ✅ done (2026-09-26)
+- [x] Installed `spatie/laravel-activitylog` (see [`DECISIONS.md`](DECISIONS.md#d-005)); wired into every tenant-scoped model
+- [x] Every create/update/delete on a tenant-scoped model logs who/when/what changed (old → new value)
+- **Tenant isolation for the audit trail itself:** the package's stock `activity_log` table has no tenant column at all. Added one directly to the published migration, and introduced `App\Models\AuditLogEntry` (extends the package's `Activity`, adds `BelongsToTenant`, registered as `activitylog.activity_model`) so every logged row is tenant-scoped like everything else. A new `App\Models\Concerns\Auditable` trait (not folded into `BelongsToTenant` itself — see why below) is applied alongside `BelongsToTenant` on every business model: `User`, `Department`, `DutyStation`, `Position`, `ApprovalChain`, `ApprovalChainStep`, `ApprovalInstance`, `ApprovalInstanceStep`, `TestRequest`.
+- **Design pitfall caught before it was ever run:** the obvious shortcut — put `LogsActivity` directly inside `BelongsToTenant`, since every tenant-scoped model should be audited anyway — would make `AuditLogEntry` (which itself uses `BelongsToTenant` for its own tenant scoping) log its own creation, recursively, forever. Caught by tracing the composition before writing it, not by hitting the recursion at runtime. See [`DECISIONS.md#d-029`](DECISIONS.md#d-029).
+- [x] `User` overrides its logging options to exclude `password` from the diff, even hashed — no legitimate reason for a hash to sit in an audit trail.
+- [x] A real screen, not just a database table: `/audit-log` (`App\Livewire\AuditLog\Index`) — paginated, filterable by event (created/updated/deleted), each entry showing who did what to which record with an expandable old→new field diff. Linked in the sidebar under "Administration", gated by `HrmOrgView` (no dedicated audit-log permission exists yet — see [`QUESTIONS.md#q8`](QUESTIONS.md#q8)).
+- **DoD:** ✅ met — verified against the live running server, not just tests: logged in as `hr-admin@demo.test`, created and updated a real `Department` via `tinker`, loaded `/audit-log` and confirmed both the created and updated entries render with the correct old→new values; confirmed an Employee gets a 403 on the same route.
+- 87 tests total (up from 78), Pint and Larastan clean.
 
 ### 0.9 Document store
 - [ ] S3-compatible storage disk configured (local `public`/`local` disk for dev, S3 for staging/prod)

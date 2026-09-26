@@ -41,6 +41,15 @@ Things that need your input. Each has the default we're proceeding under until y
 - **Default in use:** proceed with realistic-but-synthetic demo data modeled on WARDI's public ToR details (six regions, health/FSL/education/protection/WASH sectors) until told otherwise.
 - **Status:** Open.
 
+### Q8
+
+**Who should be able to view the audit log — a dedicated permission, or reuse an existing one?**
+
+- **Why it matters:** Step 0.8 (audit log) needs to gate its viewer screen behind something. [`../03-roles-and-permissions.md`](../03-roles-and-permissions.md) doesn't define a specific permission for this, though it does give Auditor/Donor scoped view access to several modules and mentions a full audit trail as a platform requirement.
+- **Options:** (a) reuse `Permission::HrmOrgView` (same gate as the Organization screen — HR Admin, Country Director, Super Admin) since it's the closest existing "org-wide visibility" permission. (b) introduce a dedicated `system.audit.view` permission now and decide which roles get it. (c) give Auditor/Donor scoped read access to the audit log specifically, matching their role's purpose.
+- **Default in use:** (a) — reused `HrmOrgView` for now rather than inventing a new permission ahead of a real requirement; cheap to swap for a dedicated permission later since the gate is centralized in one place (`can:` middleware + one `@can` block).
+- **Status:** Open.
+
 ---
 
 ## Resolved

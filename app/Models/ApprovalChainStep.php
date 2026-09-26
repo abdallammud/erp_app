@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\ApprovalChainStepFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ApprovalChainStep extends Model
 {
     /** @use HasFactory<ApprovalChainStepFactory> */
-    use BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory;
 
     /**
      * @return BelongsTo<ApprovalChain, $this>

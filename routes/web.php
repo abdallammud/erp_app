@@ -25,6 +25,12 @@ Route::view('organization', 'organization')
     ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
     ->name('organization');
 
+// Gated by HrmOrgView for now — no dedicated audit-log permission exists
+// yet, see docs/build/QUESTIONS.md Q8.
+Route::view('audit-log', 'audit-log')
+    ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
+    ->name('audit-log');
+
 // A real, working proof of the approval engine (docs/build/00-build-plan.md
 // Step 0.6) — open to any authenticated user, since anyone can submit a
 // test request; per-instance approval eligibility is enforced by

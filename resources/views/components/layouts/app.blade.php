@@ -79,6 +79,11 @@
                             <x-icon name="building" class="h-[18px] w-[18px] shrink-0" />
                             <span>Organization</span>
                         </a>
+                        <a href="{{ route('audit-log') }}"
+                           class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 font-medium {{ request()->routeIs('audit-log') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
+                            <x-icon name="history" class="h-[18px] w-[18px] shrink-0" />
+                            <span>Audit Log</span>
+                        </a>
                     </nav>
                 </div>
             @endcan

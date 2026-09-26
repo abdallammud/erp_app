@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Support\Approvals\ApprovalStepStatus;
 use Database\Factories\ApprovalInstanceStepFactory;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ApprovalInstanceStep extends Model
 {
     /** @use HasFactory<ApprovalInstanceStepFactory> */
-    use BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory;
 
     protected function casts(): array
     {

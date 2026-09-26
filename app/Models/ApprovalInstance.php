@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Support\Approvals\ApprovalStatus;
 use Database\Factories\ApprovalInstanceFactory;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class ApprovalInstance extends Model
 {
     /** @use HasFactory<ApprovalInstanceFactory> */
-    use BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory;
 
     protected function casts(): array
     {
