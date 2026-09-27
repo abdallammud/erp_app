@@ -124,7 +124,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 1 — HRM & Payroll `[~ in progress — 1.1 done]`
+## Phase 1 — HRM & Payroll `[~ in progress — 1.1-1.2 done]`
 
 *Full functional spec: [`../04-module-hrm.md`](../04-module-hrm.md).*
 
@@ -137,12 +137,15 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the live running server, not just the 139-test suite: created real Department/Position/DutyStation/SalaryGrade records and then a real Employee + Contract via `tinker` (the exact same calls the Livewire component makes), confirmed via `DB::table('employees')` that `national_id`'s raw stored value contains no trace of the plaintext, and confirmed the `/employees` and `/organization` pages correctly render the new records (name, department, position, duty station, contract type, salary grade) — plus confirmed the new Employee/Contract rows already show up correctly on `/audit-log` for free, since both models use `Auditable`.
 - 139 tests total (up from 125), Pint and Larastan clean.
 
-### 1.2 Employee Portal shell + profile
-- [ ] Employee Portal navigation shell (per [Roles & Permissions](../03-roles-and-permissions.md))
-- [ ] Profile view/edit with change-history logging (old/new value + approver)
-- [ ] Dependents & emergency contacts, with insurance-beneficiary percentage-split validation (must total 100%)
-- [ ] Document repository per employee (using the Phase 0 Document store), with category + expiry + verified status
-- **DoD:** matches the reference behavior in the Nova HRM UI screens for My Profile → Dependents/Documents/History.
+### 1.2 Employee Portal shell + profile ✅ done (2026-09-27)
+- [x] Employee Portal navigation shell — already built in Phase 0's visual pass (D-024); this step fills in the specific tiles it was waiting on rather than restructuring nav. The four *distinct role* portals (Employee/Supervisor/HR Admin/Payroll) from Roles & Permissions are their own later steps (1.12–1.14), not this one.
+- [x] Profile view/edit with change-history logging: the logging was already automatic (User and Employee both use `Auditable`, Step 0.8) — what was missing was a way to *see* it and a way to *edit* Employee's own contact fields (phone/personal email/address) self-service, which had no UI at all before this step (only HR could touch them, via `/employees`). Both now real: `App\Livewire\Employees\History` (self-scoped view of `AuditLogEntry`, reusing the existing engine rather than building a second one) and the contact-info form on `App\Livewire\Employees\PersonalDetails`.
+- [x] Dependents & emergency contacts (`App\Models\Dependent`, new): relationship, DOB, passport number (encrypted — Restricted-tier, same treatment as `national_id`), emergency-contact flag, insurance-beneficiary flag + percentage. "Must total 100%" is enforced as *never exceed* 100% across all of an employee's beneficiaries, checked on every save — see [`DECISIONS.md#d-039`](DECISIONS.md#d-039) for why a hard "always exactly 100%" rule isn't realistic for incremental data entry.
+- [x] **Document repository moved from User to Employee** (a real design correction, not originally planned for this step): Step 0.9 built it against `User` before `Employee` existed; "not every employee has a login" means a User-keyed repository could never work for an employee without portal access. `App\Livewire\Employees\Documents` (renamed from `App\Livewire\Documents\MyDocuments`) and `DocumentPolicy` now key off `Employee`. See [`DECISIONS.md#d-038`](DECISIONS.md#d-038).
+- [x] `App\Livewire\Employees\Employment` (new, read-only): department/position/duty station/staff category/hire date, full contract history including the employee's own salary grade — showing an employee their own salary is explicitly allowed even though it's Restricted-tier data (docs/03-roles-and-permissions.md: "Owner + ... only," and this is always exactly the record's own owner).
+- **A real Larastan/Livewire interaction, fixed at the pattern level, not suppressed:** Livewire's `#[Computed]` methods throw `CannotCallComputedDirectlyException` if called directly — `$this->employee` (magic property) is the *only* legal access path, including from the component's own action methods, not just Blade. Larastan doesn't understand that magic when read from PHP code (as opposed to Blade, which it doesn't scan at all), and flags it as an undefined property. Fixed by splitting every such Computed method into a thin wrapper plus a plain private `resolveX()` method that action code calls instead — removes the false positive at its source rather than suppressing it, and is a pattern every future component with both actions and computed state will need too.
+- **DoD:** ✅ met — verified against the live running server, not just the 155-test suite: linked a real demo user to a real Employee+Contract via `tinker`, then drove the real UI (`/my-profile`) and confirmed all four tiles render with real data; used `tinker` to update contact info, add two dependents with a 60/40 beneficiary split (confirmed via `DB::table` that `passport_number`'s raw value contains no plaintext), and upload a real document — then reloaded `/my-profile` and confirmed the page reflects all of it, confirmed the new Dependent audit entries appear on `/audit-log` automatically, and confirmed the uploaded document downloads correctly as its owner.
+- 155 tests total (up from 139), Pint and Larastan clean.
 
 ### 1.3 Recruitment & Onboarding
 - [ ] Vacancy model + approval-chain-gated posting

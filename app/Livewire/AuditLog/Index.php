@@ -2,6 +2,7 @@
 
 namespace App\Livewire\AuditLog;
 
+use App\Livewire\Concerns\FormatsAuditValues;
 use App\Models\AuditLogEntry;
 use App\Models\User;
 use App\Support\Reporting\ReportDataset;
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use FormatsAuditValues, WithPagination;
 
     #[Url]
     public string $event = '';
@@ -111,23 +112,6 @@ class Index extends Component
     public function exportPdf(): StreamedResponse
     {
         return app(ReportExporter::class)->toPdf($this->exportDataset(), 'audit-log');
-    }
-
-    /**
-     * Renders a logged attribute value for the diff table — booleans and
-     * null print as words, not the empty string Blade's `{{ }}` would
-     * otherwise turn `false`/`null` into (indistinguishable from "no
-     * value" in the UI, which would make a false→true change on e.g.
-     * `is_active` look like nothing happened).
-     */
-    public function formatValue(mixed $value): string
-    {
-        return match (true) {
-            is_bool($value) => $value ? 'true' : 'false',
-            is_null($value) => '—',
-            is_array($value) => json_encode($value),
-            default => (string) $value,
-        };
     }
 
     public function render()

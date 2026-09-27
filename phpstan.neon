@@ -66,3 +66,15 @@ parameters:
         -
             identifier: method.nonObject
             path: app/Livewire/Hrm/Employees.php
+
+        # Same false positive again: Dependent's `relationship` (enum)
+        # and `date_of_birth` (date) casts in
+        # App\Livewire\Employees\PersonalDetails::editDependent().
+        # Re-verified via tinker before ignoring — see
+        # docs/build/DECISIONS.md Step 1.2.
+        -
+            identifier: property.nonObject
+            path: app/Livewire/Employees/PersonalDetails.php
+        -
+            identifier: method.nonObject
+            path: app/Livewire/Employees/PersonalDetails.php

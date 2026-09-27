@@ -4,6 +4,22 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-27 — Phase 1 Step 1.2: Employee Portal shell + profile
+
+Continued from Step 1.1 (Employee data model). Filled in the three real tiles My Profile was still waiting on (Personal Details, Employment, History), and made a real design correction to Documents now that Employee exists.
+
+- **Personal Details** (`App\Livewire\Employees\PersonalDetails`, new): self-service contact-info editing (phone/personal email/address) plus full dependents & emergency contacts management, including insurance beneficiary percentage allocation. "Must total 100%" is enforced as *never exceed* 100% across all of an employee's beneficiaries, checked on every save, with the running total always visible — a hard "always exactly 100% right now" rule isn't realistic for incremental data entry, and doesn't actually protect against the real risk (a payout error from over-allocation) any better. See [`DECISIONS.md#d-039`](DECISIONS.md#d-039).
+- **Employment** (`App\Livewire\Employees\Employment`, new, read-only): department, position, duty station, staff category, and full contract history — including the employee's own salary grade, which is fine to show them even though salary is Restricted-tier data, because they're always exactly the record's own owner.
+- **History** (`App\Livewire\Employees\History`, new): a self-scoped view of `AuditLogEntry` — the actual change-logging was already automatic (`User` and `Employee` both use `Auditable` from Step 0.8); this just makes it visible, reusing the existing engine instead of building a second one.
+- **Documents moved from `User` to `Employee`** as the thing it attaches to — a real correction, not strictly required by this step's letter, made because Step 1.1 established that not every employee has a login, so a `User`-keyed document repository could never work for them. `App\Livewire\Documents\MyDocuments` became `App\Livewire\Employees\Documents`; `DocumentPolicy` updated to match. See [`DECISIONS.md#d-038`](DECISIONS.md#d-038).
+- **A Larastan/Livewire interaction fixed at the pattern level:** Livewire's `#[Computed]` methods throw an exception if called directly — `$this->employee` (magic property access) is the only legal way to read one, even from the component's own action methods. Larastan doesn't see that magic outside Blade (which it doesn't scan at all), so it flagged every internal read as an undefined property. Fixed by splitting each into a thin `#[Computed]` wrapper plus a plain private `resolveX()` method action code calls instead, rather than suppressing — a pattern every future component mixing actions with computed state will need.
+- `passport_number` on `Dependent` is encrypted at rest, same treatment as `national_id` (Step 1.1) — Restricted-tier personal data, per docs/03-roles-and-permissions.md's confidentiality tiers.
+- Verified against the live running server, not just the 155-test suite: linked a real demo user to a real Employee+Contract via `tinker`, drove the real `/my-profile` page and confirmed all four tiles render, updated contact info and added two dependents with a real 60/40 beneficiary split (confirmed the raw `passport_number` database value contains no plaintext), uploaded a real document, and confirmed everything reflects correctly on reload — including the new Dependent changes appearing automatically on `/audit-log`.
+- 155 tests total (up from 139): `tests/Feature/Hrm/{PersonalDetailsComponentTest,EmploymentComponentTest,HistoryComponentTest,EmployeesDocumentsComponentTest}.php`; removed the superseded `tests/Feature/Documents/MyDocumentsComponentTest.php`.
+- Updated `docs/build/00-build-plan.md` (1.2 checked off), logged `DECISIONS.md#d-038/d-039`.
+
+**Still not started:** Steps 1.3–1.16. Step 1.3 (Recruitment & Onboarding) is next.
+
 ## 2026-09-27 — Phase 1 Step 1.1: Employee data model
 
 Phase 1 begins. Built the anchor HRM record and everything Step 1.1's checklist named: `employees`, `contracts`, `salary_grades`, `allowance_types`, `deduction_types`, `tax_brackets`.

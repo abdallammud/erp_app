@@ -42,25 +42,49 @@
             <h3 class="text-sm font-semibold text-slate-700">Documents</h3>
         </div>
         <p class="mt-1 text-xs text-slate-500">
-            Build Plan Step 0.9 — ID, contract, certificates, expiry-tracked. Verification by HR is a Phase 1 screen (see docs/04-module-hrm.md §B); the upload/download/storage primitive underneath it is real today.
+            Build Plan Step 1.2 — ID, contract, certificates, expiry-tracked, attached to your employee record.
         </p>
         <div class="mt-4">
-            @livewire('documents.my-documents')
+            @livewire('employees.documents')
         </div>
     </div>
 
-    @foreach ([
-        ['title' => 'Personal Details', 'icon' => 'user', 'note' => 'Dependents, emergency contacts, insurance beneficiaries — see docs/04-module-hrm.md §B.'],
-        ['title' => 'Employment', 'icon' => 'briefcase', 'note' => 'Contract, position, grade, duty station, employment history — see docs/04-module-hrm.md §B.'],
-        ['title' => 'History', 'icon' => 'history', 'note' => 'Employment and profile change history, fully audited. See docs/04-module-hrm.md §B.'],
-    ] as $section)
-        <div class="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-6">
-            <div class="flex items-center gap-2">
-                <x-icon :name="$section['icon']" class="h-4 w-4 text-slate-400" />
-                <h3 class="text-sm font-semibold text-slate-700">{{ $section['title'] }}</h3>
-                <span class="ml-auto text-xs font-medium text-slate-400">Coming in Phase 1</span>
-            </div>
-            <p class="mt-2 text-xs text-slate-500">{{ $section['note'] }}</p>
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2">
+            <x-icon name="user" class="h-4 w-4 text-slate-400" />
+            <h3 class="text-sm font-semibold text-slate-700">Personal Details</h3>
         </div>
-    @endforeach
+        <p class="mt-1 text-xs text-slate-500">
+            Build Plan Step 1.2 — contact information, dependents, emergency contacts, insurance beneficiaries.
+        </p>
+        <div class="mt-4">
+            @livewire('employees.personal-details')
+        </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2">
+            <x-icon name="briefcase" class="h-4 w-4 text-slate-400" />
+            <h3 class="text-sm font-semibold text-slate-700">Employment</h3>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">
+            Build Plan Step 1.2 — department, position, duty station, and contract history.
+        </p>
+        <div class="mt-4">
+            @livewire('employees.employment')
+        </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2">
+            <x-icon name="history" class="h-4 w-4 text-slate-400" />
+            <h3 class="text-sm font-semibold text-slate-700">History</h3>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">
+            Build Plan Step 1.2 — every change to your profile and employee record, fully audited.
+        </p>
+        <div class="mt-4">
+            @livewire('employees.history')
+        </div>
+    </div>
 </x-layouts.app>
