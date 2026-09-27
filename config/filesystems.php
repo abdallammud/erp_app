@@ -17,6 +17,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Document Store Disk
+    |--------------------------------------------------------------------------
+    |
+    | Which disk App\Support\Documents\DocumentStore writes to — see
+    | docs/build/00-build-plan.md Step 0.9 and docs/build/DECISIONS.md
+    | D-010. 'local' (private, not web-accessible — see the 'local' disk
+    | below) in dev; set DOCUMENTS_DISK=s3 in staging/prod once real S3
+    | credentials exist. Never 'public' — documents are access-controlled
+    | via App\Policies\DocumentPolicy and a signed download route, not a
+    | guessable public URL.
+    |
+    */
+
+    'documents_disk' => env('DOCUMENTS_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -58,6 +75,16 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+            // Server-side encryption-at-rest, per docs/02-architecture.md's
+            // "encrypted object storage" requirement — forwarded as the
+            // default PutObject option for every write to this disk. Not
+            // yet exercised against a real bucket (no S3 credentials
+            // exist in this environment) — see docs/build/DECISIONS.md
+            // D-030, which covers app-layer encryption as the mechanism
+            // actually verified so far, independent of this.
+            'options' => [
+                'ServerSideEncryption' => env('AWS_SERVER_SIDE_ENCRYPTION', 'AES256'),
+            ],
         ],
 
     ],

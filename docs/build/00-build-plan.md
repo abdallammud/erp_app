@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.8 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.9 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -90,11 +90,15 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the live running server, not just tests: logged in as `hr-admin@demo.test`, created and updated a real `Department` via `tinker`, loaded `/audit-log` and confirmed both the created and updated entries render with the correct old→new values; confirmed an Employee gets a 403 on the same route.
 - 87 tests total (up from 78), Pint and Larastan clean.
 
-### 0.9 Document store
-- [ ] S3-compatible storage disk configured (local `public`/`local` disk for dev, S3 for staging/prod)
-- [ ] Generic `Document` model: polymorphic attachment to any record, category, expiry date, "verified" flag, tenant- and path-scoped
-- [ ] Encrypted-at-rest confirmed for the chosen storage backend
-- **DoD:** a file can be uploaded against a demo record, downloaded only by an authorized role, and is inaccessible cross-tenant.
+### 0.9 Document store ✅ done (2026-09-27)
+- [x] Storage disk configured via a `filesystems.documents_disk` indirection (`local` in dev, `env('DOCUMENTS_DISK')` swaps to `s3` in staging/prod without any code change) — never the `public` disk, since documents are access-controlled, not publicly served. `local` resolves to Laravel 13's private `storage/app/private`, not web-accessible directly.
+- [x] Generic `App\Models\Document`: polymorphic (`documentable`), free-form `category` (not an enum — categories differ per module), `expiry_date`, `is_verified`/`verified_by_id`/`verified_at`, tenant-scoped (`BelongsToTenant`) and path-scoped (`documents/{tenant_id}/{uuid}` on disk, independent of the DB scoping). Single entry point `App\Support\Documents\DocumentStore` (`store`, `contents`, `verify`) — nothing else calls `Storage::disk(...)` against a document's path directly.
+- [x] Encrypted at rest, and actually verified in this environment (not just configured and assumed): file bytes are encrypted with Laravel's `Crypt` facade (app-key-based) *before* ever reaching any disk, local or S3 — so it's true in dev too, not just a staging/prod S3 setting nobody can check without real cloud credentials. A test reads the raw bytes directly off the fake disk and asserts they don't contain the plaintext. S3's own server-side encryption is additionally configured (`ServerSideEncryption: AES256` on the `s3` disk) as defense-in-depth for when real S3 credentials exist, but that specific piece is configured, not verified — no S3 access in this environment. See [`DECISIONS.md#d-030`](DECISIONS.md#d-030).
+- [x] A real screen, not a throwaway demo entity this time: "Documents" on **My Profile** (`App\Livewire\Documents\MyDocuments`) — upload, list, and download your own personnel documents. The `Document` model attaches to the real `User` record, matching docs/04-module-hrm.md §B's actual future feature directly. `DocumentStore::verify()` exists and is tested at the service layer for Phase 1's employee-directory screen to call — no UI button for it yet, since no such directory screen exists to hang it on until Phase 1.
+- [x] Authorization: `App\Policies\DocumentPolicy` — the document's owner, the employee it's attached to, or anyone with `HrmOrgView` (HR Admin, Country Director, Super Admin). First real use of the "owner OR org-level permission" pattern `AuthorizationServiceProvider`'s docblock anticipated back in Step 0.4.
+- **A significant, previously-latent bug found only by live testing, not by the 100-test suite:** `App\Http\Middleware\IdentifyTenant` ran *after* Laravel's `SubstituteBindings` middleware — so the first route ever to use implicit route-model binding on a `BelongsToTenant` model (`Document $document` in `/documents/{document}/download`) resolved that binding with no tenant context yet, and `TenantScope`'s fail-closed behavior turned it into a 404 — even for the document's own owner. Every existing Feature test sets `TenantContext` directly before making a request (including `tests/Pest.php`'s own global default), which completely masks this class of bug regardless of the real middleware order. Fixed via `$middleware->prependToPriorityList()` in `bootstrap/app.php`; added a dedicated regression test that deliberately clears `TenantContext` and relies entirely on the real middleware chain, and confirmed it actually fails without the fix before trusting it. See [`DECISIONS.md#d-031`](DECISIONS.md#d-031) — arguably the most important bug caught in Phase 0 so far, since it would have silently broken every future route of this shape.
+- **DoD:** ✅ met — verified against the live running server: uploaded a real file as `employee@demo.test`, confirmed the raw on-disk bytes are ciphertext (not the plaintext marker written into the source file), downloaded it successfully as the owner, got a 403 as a different employee, got 200 as `hr-admin@demo.test`, and got a 404 for an HR Admin belonging to a completely different tenant.
+- 100 tests total (up from 87), Pint and Larastan clean.
 
 ### 0.10 Reporting & export framework
 - [ ] Shared table/list component with Excel, CSV, PDF export baked in (used by every module's "Reports" screens later)

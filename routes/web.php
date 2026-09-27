@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentDownloadController;
 use App\Support\Authorization\Permission;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,15 @@ Route::view('profile', 'profile')
 Route::view('my-profile', 'my-profile')
     ->middleware(['auth'])
     ->name('my-profile');
+
+// Build Plan Step 0.9 — the only way a document's file content ever
+// leaves the app. Authorization is App\Policies\DocumentPolicy, checked
+// inside the controller, not route middleware — a plain `auth` here
+// plus tenant-scoped route-model binding (cross-tenant ids 404 before
+// this route ever matters) is deliberately all that lives at this layer.
+Route::get('documents/{document}/download', DocumentDownloadController::class)
+    ->middleware(['auth'])
+    ->name('documents.download');
 
 Route::view('organization', 'organization')
     ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])

@@ -36,10 +36,22 @@
         </div>
     </div>
 
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2">
+            <x-icon name="cube" class="h-4 w-4 text-slate-400" />
+            <h3 class="text-sm font-semibold text-slate-700">Documents</h3>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">
+            Build Plan Step 0.9 — ID, contract, certificates, expiry-tracked. Verification by HR is a Phase 1 screen (see docs/04-module-hrm.md §B); the upload/download/storage primitive underneath it is real today.
+        </p>
+        <div class="mt-4">
+            @livewire('documents.my-documents')
+        </div>
+    </div>
+
     @foreach ([
         ['title' => 'Personal Details', 'icon' => 'user', 'note' => 'Dependents, emergency contacts, insurance beneficiaries — see docs/04-module-hrm.md §B.'],
         ['title' => 'Employment', 'icon' => 'briefcase', 'note' => 'Contract, position, grade, duty station, employment history — see docs/04-module-hrm.md §B.'],
-        ['title' => 'Documents', 'icon' => 'cube', 'note' => 'ID, contract, certificates — expiry-tracked, verified by HR. See docs/04-module-hrm.md §B.'],
         ['title' => 'History', 'icon' => 'history', 'note' => 'Employment and profile change history, fully audited. See docs/04-module-hrm.md §B.'],
     ] as $section)
         <div class="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-6">
