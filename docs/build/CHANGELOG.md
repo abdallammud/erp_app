@@ -4,6 +4,19 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-27 — Phase 0 Step 0.10: reporting & export framework
+
+Continued from Step 0.9 (document store). Built the shared Excel/CSV/PDF export framework every module's future "Reports" screen will use, and wired it into a real, already-existing screen (the Audit Log) rather than a new throwaway demo page.
+
+- **`maatwebsite/excel`** (Excel + CSV) and **`barryvdh/laravel-dompdf`** (PDF) installed. `App\Support\Reporting\ReportDataset` is the one format-agnostic shape every format consumes (title, ordered columns, flattened rows); `App\Exports\GenericExport` (one class, shared across every future module) handles Excel+CSV; `resources/views/exports/generic-table.blade.php` (one shared layout) handles PDF. `App\Support\Reporting\ReportExporter::toExcel()/toCsv()/toPdf()` is the actual entry point — see [`DECISIONS.md#d-032`](DECISIONS.md#d-032) for why PDF goes through a hand-written Blade view rather than PhpSpreadsheet's own PDF writer bridge.
+- **A real bug caught by reading framework source before wiring anything up, not by a dead button:** DomPDF's own `->download()` returns a plain `Illuminate\Http\Response`, not a `StreamedResponse`/`BinaryFileResponse` — the two types Livewire's file-download support actually recognizes. Calling it directly from a Livewire action would have silently done nothing when clicked (no error at all). Fixed by building the PDF response manually around DomPDF's raw output bytes, reusing the same `response()->streamDownload()` pattern already proven in Step 0.9's document download controller.
+- **Wired into the real Audit Log screen**, not a new demo page: "Export: Excel / CSV / PDF" buttons that respect whatever event filter is active. An early version only exported who/what/when (event type, record, causer) — realized mid-step that a real audit-log export missing the actual old→new diff would be materially less useful than the on-screen expandable table it's exported from, so added a flattened "Changes" column matching the screen's own diff logic before calling this done.
+- **Verified two ways:** automated tests parse the generated files back for real (PhpSpreadsheet reads the XLSX cell-by-cell, plain `str_getcsv` for CSV, a rendered-view content check plus a `%PDF-` magic-byte check for PDF) rather than just asserting "no exception thrown"; and, live against the real environment (not `Storage::fake()`), generated all three formats via `tinker` and independently confirmed them with PhpSpreadsheet and the system's own `pdfinfo`/`pdftotext` utilities — a real 1-page PDF with the correct extracted title, heading, and row text.
+- 108 tests total (up from 100): `tests/Feature/Reporting/ReportExporterTest.php` and `tests/Feature/AuditLog/ExportTest.php`.
+- Updated `docs/build/00-build-plan.md` (0.10 checked off), logged `DECISIONS.md#d-032`.
+
+**Still not started:** Phase 0 Step 0.11 (Super Admin portal) — the last step before Phase 0's exit criteria are checked as a whole.
+
 ## 2026-09-27 — Phase 0 Step 0.9: document store
 
 Continued from Step 0.8 (audit log). Built the generic document/attachment primitive: storage disk config, the `Document` model, `App\Support\Documents\DocumentStore`, a `DocumentPolicy`, and a real screen — plus found and fixed what's probably the most significant bug in Phase 0 so far, entirely through live testing.

@@ -3,10 +3,15 @@
 namespace App\Livewire\AuditLog;
 
 use App\Models\AuditLogEntry;
+use App\Models\User;
+use App\Support\Reporting\ReportDataset;
+use App\Support\Reporting\ReportExporter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The real screen behind Build Plan Step 0.8's audit log — not just a
@@ -38,6 +43,74 @@ class Index extends Component
     public function updatedEvent(): void
     {
         $this->resetPage();
+    }
+
+    /**
+     * Every module's Reports screen will build one of these from
+     * whatever query it already has — this is the first real one. Not
+     * paginated: exporting means "everything matching the filter," a
+     * different concern from what fits on one screen.
+     */
+    private function exportDataset(): ReportDataset
+    {
+        $entries = AuditLogEntry::query()
+            ->with('causer')
+            ->when($this->event !== '', fn ($query) => $query->where('event', $this->event))
+            ->latest()
+            ->get();
+
+        $rows = $entries->map(fn (AuditLogEntry $entry): array => [
+            'when' => $entry->created_at?->toDateTimeString() ?? '',
+            'event' => $entry->event ?? '',
+            'subject' => class_basename($entry->subject_type ?? 'Unknown').' #'.$entry->subject_id,
+            'causer' => $entry->causer instanceof User ? $entry->causer->name : 'System',
+            'changes' => $this->summarizeChanges($entry),
+        ]);
+
+        return new ReportDataset(
+            title: 'Audit Log',
+            columns: ['when' => 'When', 'event' => 'Event', 'subject' => 'Record', 'causer' => 'By', 'changes' => 'Changes'],
+            rows: $rows,
+        );
+    }
+
+    /**
+     * A flattened, one-line version of the same old->new diff the
+     * expandable table in the Blade view renders — without this, the
+     * export would be materially less useful than the screen it's
+     * exported from (who/what/when but not *what changed*, which is
+     * the actual point of an audit trail).
+     */
+    private function summarizeChanges(AuditLogEntry $entry): string
+    {
+        $new = $entry->attribute_changes?->get('attributes', []) ?? [];
+        $old = $entry->attribute_changes?->get('old', []) ?? [];
+        $fields = collect(array_keys($new))->merge(array_keys($old))->unique();
+
+        return $fields
+            ->map(function (string $field) use ($old, $new): string {
+                if (array_key_exists($field, $old) && array_key_exists($field, $new)) {
+                    return "{$field}: {$this->formatValue($old[$field])} -> {$this->formatValue($new[$field])}";
+                }
+
+                return "{$field}: ".$this->formatValue($new[$field] ?? $old[$field] ?? null);
+            })
+            ->implode('; ');
+    }
+
+    public function exportExcel(): BinaryFileResponse
+    {
+        return app(ReportExporter::class)->toExcel($this->exportDataset(), 'audit-log');
+    }
+
+    public function exportCsv(): BinaryFileResponse
+    {
+        return app(ReportExporter::class)->toCsv($this->exportDataset(), 'audit-log');
+    }
+
+    public function exportPdf(): StreamedResponse
+    {
+        return app(ReportExporter::class)->toPdf($this->exportDataset(), 'audit-log');
     }
 
     /**

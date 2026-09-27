@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.9 done]`
+## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.10 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -100,9 +100,13 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified against the live running server: uploaded a real file as `employee@demo.test`, confirmed the raw on-disk bytes are ciphertext (not the plaintext marker written into the source file), downloaded it successfully as the owner, got a 403 as a different employee, got 200 as `hr-admin@demo.test`, and got a 404 for an HR Admin belonging to a completely different tenant.
 - 100 tests total (up from 87), Pint and Larastan clean.
 
-### 0.10 Reporting & export framework
-- [ ] Shared table/list component with Excel, CSV, PDF export baked in (used by every module's "Reports" screens later)
-- **DoD:** one demo dataset exports correctly in all three formats.
+### 0.10 Reporting & export framework ✅ done (2026-09-27)
+- [x] `maatwebsite/excel` (Excel + CSV) and `barryvdh/laravel-dompdf` (PDF) installed — see [`DECISIONS.md#d-032`](DECISIONS.md#d-032) for why both, not one.
+- [x] `App\Support\Reporting\ReportDataset` — the one format-agnostic shape every export format consumes (title, ordered columns, flattened rows); `App\Exports\GenericExport` (one class, shared across every module, for XLSX+CSV) and `resources/views/exports/generic-table.blade.php` (shared PDF layout). `App\Support\Reporting\ReportExporter::toExcel()/toCsv()/toPdf()` is the actual entry point — a future module's Reports screen builds a `ReportDataset` from whatever query it already has and gets all three formats for free.
+- **A real compatibility bug caught before it shipped, not after:** DomPDF's own `->download()` returns a plain `Illuminate\Http\Response` with the file content already embedded — not a `StreamedResponse`/`BinaryFileResponse`. Livewire's file-download support (`SupportFileDownloads`) only auto-triggers a browser download for those two types, so calling DomPDF's `download()` directly from a Livewire action would have silently done nothing in the browser (no error — the response just wouldn't be recognized as downloadable). Caught by reading Livewire's own file-download source before wiring the PDF path in, not by clicking a dead button. Fixed by building the response manually via `response()->streamDownload()` around DomPDF's raw `->output()` bytes, matching Excel's already-correct `BinaryFileResponse`.
+- [x] Wired into a real, existing screen — the Audit Log (`/audit-log`) — rather than a new throwaway demo page: "Export: Excel / CSV / PDF" buttons, respecting whatever event filter is currently active. Added a "Changes" column (a flattened old→new diff, matching what the on-screen expandable table already shows) after an early version of this step exported only who/what/when — a real export missing the diff would be materially less useful than the screen it's exported from.
+- **DoD:** ✅ met — verified two ways: (1) automated tests parse the generated files back (PhpSpreadsheet for Excel, plain parsing for CSV, `view()->render()` + a `%PDF-` magic-byte check for PDF) and confirm real content round-trips correctly; (2) live against the real environment (not `Storage::fake()`) via `tinker` — a real 6+KB XLSX opened correctly with PhpSpreadsheet, a real CSV with correct content, and a real PDF confirmed with `pdfinfo`/`pdftotext` (1 page, correct title/headings/row text extracted) — because a library integration working in a faked test environment doesn't guarantee it works against the real filesystem/PDF renderer.
+- 108 tests total (up from 100), Pint and Larastan clean.
 
 ### 0.11 Super Admin portal
 - [ ] Tenant CRUD (create/suspend/configure a tenant)

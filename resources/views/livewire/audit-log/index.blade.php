@@ -1,13 +1,22 @@
 <div class="space-y-4">
-    <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-slate-500">Every create, update, and delete on a tenant-scoped record, newest first.</p>
 
-        <select wire:model.live="event" class="rounded-md border-slate-300 text-xs">
-            <option value="">All events</option>
-            <option value="created">Created</option>
-            <option value="updated">Updated</option>
-            <option value="deleted">Deleted</option>
-        </select>
+        <div class="flex items-center gap-2">
+            <select wire:model.live="event" class="rounded-md border-slate-300 text-xs">
+                <option value="">All events</option>
+                <option value="created">Created</option>
+                <option value="updated">Updated</option>
+                <option value="deleted">Deleted</option>
+            </select>
+
+            <div class="flex items-center gap-1 border-l border-slate-200 pl-2 text-xs">
+                <span class="text-slate-400">Export:</span>
+                <button wire:click="exportExcel" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">Excel</button>
+                <button wire:click="exportCsv" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">CSV</button>
+                <button wire:click="exportPdf" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">PDF</button>
+            </div>
+        </div>
     </div>
 
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
