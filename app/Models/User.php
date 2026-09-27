@@ -39,7 +39,7 @@ use Spatie\Permission\Traits\HasRoles;
  * for every account (e.g. Super Admin/HR-Admin-created accounts could
  * be pre-verified), just makes the feature coherent if/when it's used.
  */
-#[Fillable(['tenant_id', 'name', 'email', 'password'])]
+#[Fillable(['tenant_id', 'name', 'email', 'password', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {

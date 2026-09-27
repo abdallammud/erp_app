@@ -8,7 +8,7 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 0 — Platform Foundation `[~ in progress — 0.1-0.10 done]`
+## Phase 0 — Platform Foundation `[✅ complete — 0.1-0.11 done]`
 
 *Nothing in later phases works correctly without this. See [`../02-architecture.md`](../02-architecture.md) for the design reasoning.*
 
@@ -108,13 +108,19 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 - **DoD:** ✅ met — verified two ways: (1) automated tests parse the generated files back (PhpSpreadsheet for Excel, plain parsing for CSV, `view()->render()` + a `%PDF-` magic-byte check for PDF) and confirm real content round-trips correctly; (2) live against the real environment (not `Storage::fake()`) via `tinker` — a real 6+KB XLSX opened correctly with PhpSpreadsheet, a real CSV with correct content, and a real PDF confirmed with `pdfinfo`/`pdftotext` (1 page, correct title/headings/row text extracted) — because a library integration working in a faked test environment doesn't guarantee it works against the real filesystem/PDF renderer.
 - 108 tests total (up from 100), Pint and Larastan clean.
 
-### 0.11 Super Admin portal
-- [ ] Tenant CRUD (create/suspend/configure a tenant)
-- [ ] Cross-tenant system health view (basic — job queue status, error rate, storage usage)
-- [ ] Logged impersonation flow for support access into a tenant
-- **DoD:** a Super Admin can create a brand-new tenant end to end and it's immediately usable (empty but functional).
+### 0.11 Super Admin portal ✅ done (2026-09-27)
+- [x] Tenant CRUD: create (name + first admin together, not just the tenant — see DoD note below) and suspend/reactivate. "Configure" beyond that (logo, currencies, fiscal year — `Tenant`'s full org-profile columns already exist from Step 0.3) has no UI yet; deliberately not built now, since nothing in Phase 0 needs to *edit* those fields yet and a form for columns nothing reads back would be premature.
+- [x] Cross-tenant system health view: active/suspended tenant counts, total users, pending/failed (24h) queue jobs (`jobs`/`failed_jobs` tables — real, not a placeholder), total document storage across all tenants (sums `documents.size`, from Step 0.9).
+- [x] Logged impersonation flow: `App\Support\Impersonation\ImpersonationManager` — session-based, defensively re-validated on stop (a tampered session value is rejected, not trusted), every start/stop writes a real `AuditLogEntry` attributed to the **target's** tenant (visible on that tenant's own Audit Log screen, not hidden from it). A persistent "You're impersonating X — Stop" banner lives in the shared layout. See [`DECISIONS.md#d-035`](DECISIONS.md#d-035).
+- [x] One new permission, `Permission::PlatformAdmin` — deliberately singular, not several: Super Admin is a single, all-or-nothing platform role (no tiering), unlike every tenant-business module.
+- [x] Suspension actually enforced, not just a flag: `App\Livewire\Forms\LoginForm::authenticate()` blocks a login outright for a user whose tenant is suspended, even with correct credentials. Known, documented limitation: this is login-time only — an already-active session isn't forcibly terminated when a tenant is suspended mid-session. See [`QUESTIONS.md#q9`](QUESTIONS.md#q9).
+- **Two real bugs found and fixed, both before or via the test suite rather than staying hidden:**
+  1. A Super Admin has no ambient `TenantContext` at all (not "the wrong one" — genuinely none), so `Auditable`'s automatic logging had nothing to fill `tenant_id` from when a Super Admin action (creating a brand-new tenant's first user) triggered it — a `NOT NULL constraint failed` on every such write. Masked by the test suite's own global tenant-context setup, exactly like D-031; caught by verifying against the real database via `tinker`, not just `RefreshDatabase`. Fixed with a subject-derived fallback on `AuditLogEntry` itself. See [`DECISIONS.md#d-033`](DECISIONS.md#d-033).
+  2. The impersonation banner's Blade view had no root HTML element when there was nothing to show — since it was added to the *global* layout, this would have 500'd every single page in the app, not just one screen. Caught immediately by the very first `composer ci` run (every page-rendering test failed with the same `RootTagMissingFromViewException`), not by a live click. See [`DECISIONS.md#d-034`](DECISIONS.md#d-034).
+- **DoD:** ✅ met — verified against the live running server, not just the 125-test suite: created a brand-new tenant + its first admin via `tinker` (same code path as the real dashboard), confirmed the real on-disk audit trail correctly attributed the new tenant's id (proving D-033's fix against real data, not a test double), logged in as that new admin over a real HTTP session and confirmed they could reach `/organization` (200) but not `/super-admin` (403), suspended the tenant and confirmed a login attempt with correct credentials is rejected with the right message (reproducing `LoginForm`'s exact logic against real data), reactivated it, then ran a full impersonation start→stop cycle via `tinker` against real data and confirmed via a real HTTP session that the resulting audit entries are visible on that tenant's own `/audit-log` screen with the correct description text.
+- 125 tests total (up from 108), Pint and Larastan clean.
 
-**Phase 0 exit criteria:** two tenants exist in the same database, are provably isolated (0.3's test), each has its own users/roles/org structure, and the approval + notification + audit + document + export plumbing all work on at least one trivial record type. This is the foundation everything else is built on — don't start Phase 1 until this is solid.
+**Phase 0 exit criteria — met:** at least two tenants exist in the same database (the original demo tenant plus every tenant created during this step's live verification) and are provably isolated (0.3's test, still passing, plus every subsequent step's own cross-tenant regression tests — D-031's, Step 0.9's document isolation test, this step's tenant-scoping fixes); each tenant has its own users/roles/org structure (Steps 0.4–0.5, and this step's own brand-new-tenant proof); the approval (0.6) + notification (0.7) + audit (0.8) + document (0.9) + export (0.10) plumbing all work on at least one real record type, exercised end to end against the live server at each step. Phase 0 is complete — Phase 1 is next.
 
 ---
 

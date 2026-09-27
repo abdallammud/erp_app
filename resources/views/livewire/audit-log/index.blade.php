@@ -40,6 +40,16 @@
                     <span class="text-xs text-slate-400">{{ $entry->created_at->diffForHumans() }}</span>
                 </div>
 
+                @if ($entry->description && $entry->description !== $entry->event)
+                    {{-- Auto-logged model changes (Auditable trait) default
+                         their description to the bare event name, which is
+                         already shown above as the badge — nothing extra to
+                         say. Manually-logged entries (e.g. impersonation)
+                         set a genuinely different, human-readable
+                         description, which is worth showing. --}}
+                    <p class="mt-1 text-xs text-slate-500">{{ $entry->description }}</p>
+                @endif
+
                 @php
                     $new = $entry->attribute_changes?->get('attributes', []) ?? [];
                     $old = $entry->attribute_changes?->get('old', []) ?? [];

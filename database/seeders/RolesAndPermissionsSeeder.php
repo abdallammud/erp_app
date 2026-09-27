@@ -105,10 +105,15 @@ class RolesAndPermissionsSeeder extends Seeder
                 $p::ProgramsView->value,
             ],
 
-            // No default tenant-business permissions — see
+            // No default TENANT-BUSINESS permissions — see
             // docs/03-roles-and-permissions.md ("Super Admin deliberately
             // has no default access to any tenant's business data").
-            RoleEnum::SuperAdmin => [],
+            // PlatformAdmin is the one exception: it's not tenant
+            // business data, it's the platform layer Super Admin exists
+            // to operate (Step 0.11).
+            RoleEnum::SuperAdmin => [
+                $p::PlatformAdmin->value,
+            ],
         };
     }
 }

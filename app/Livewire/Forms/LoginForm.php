@@ -39,6 +39,20 @@ class LoginForm extends Form
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Suspended tenants (docs/build/00-build-plan.md Step 0.11) block
+        // new logins outright — correct credentials aren't enough. Super
+        // Admin accounts (tenant_id null) are never a tenant member, so
+        // this never applies to them.
+        $user = Auth::user();
+
+        if ($user->tenant_id !== null && ! $user->tenant?->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'form.email' => 'This organization\'s access has been suspended. Contact your platform administrator.',
+            ]);
+        }
     }
 
     /**

@@ -35,6 +35,14 @@ Route::view('organization', 'organization')
     ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
     ->name('organization');
 
+// Build Plan Step 0.11 — outside every tenant by design (see
+// docs/02-architecture.md's Platform/Super Admin role). Not `verified`:
+// a Super Admin account, like any admin-created account, is
+// pre-verified (see App\Models\User's docblock).
+Route::view('super-admin', 'super-admin')
+    ->middleware(['auth', 'can:'.Permission::PlatformAdmin->value])
+    ->name('super-admin');
+
 // Gated by HrmOrgView for now — no dedicated audit-log permission exists
 // yet, see docs/build/QUESTIONS.md Q8.
 Route::view('audit-log', 'audit-log')

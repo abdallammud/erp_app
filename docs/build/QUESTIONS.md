@@ -50,6 +50,15 @@ Things that need your input. Each has the default we're proceeding under until y
 - **Default in use:** (a) — reused `HrmOrgView` for now rather than inventing a new permission ahead of a real requirement; cheap to swap for a dedicated permission later since the gate is centralized in one place (`can:` middleware + one `@can` block).
 - **Status:** Open.
 
+### Q9
+
+**Suspending a tenant blocks new logins — should it also forcibly terminate already-active sessions?**
+
+- **Why it matters:** Step 0.11's suspension check runs at login time (`App\Livewire\Forms\LoginForm::authenticate()`) — a user already logged in when their tenant gets suspended keeps their existing session until it naturally expires or they log out themselves. For a genuinely urgent suspension (e.g. a compliance/security incident), that gap could matter.
+- **Options:** (a) leave it as login-time-only (current behavior) — simplest, and probably fine for the realistic use case (non-payment, offboarding), where an active-session gap of hours isn't a real incident. (b) track active sessions per user (Laravel's database session driver already stores a `user_id` column) and forcibly invalidate a tenant's sessions on suspend — real but nontrivial additional infrastructure for Phase 0. (c) check `tenant.is_active` on every request via middleware (not just login) — simpler than (b), closes the gap completely, but adds a query (or requires caching it) to every authenticated request.
+- **Default in use:** (a) — login-time-only, documented as a known, deliberate Phase 0 limitation rather than silently left unhandled.
+- **Status:** Open.
+
 ---
 
 ## Resolved

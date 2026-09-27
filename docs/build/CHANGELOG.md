@@ -4,6 +4,23 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-27 — Phase 0 Step 0.11: Super Admin portal — Phase 0 complete
+
+The last step of Phase 0. Continued from Step 0.10 (reporting). Built tenant CRUD, a basic cross-tenant system health view, and a logged impersonation flow — the platform layer that sits outside every tenant.
+
+- **Tenant creation makes a tenant AND its first admin together**, not just a bare tenant row: a tenant with zero users would exist but nobody could ever log into it, which would fail Step 0.11's own DoD ("immediately usable"). The new admin gets HR Admin by default — a sensible first role for a fresh org to start configuring itself from.
+- **Suspension is actually enforced**, not just a database flag: `LoginForm::authenticate()` blocks a login outright for a suspended tenant's user, even with the correct password. Known, honestly-documented limitation: login-time only, not a forced kick of already-active sessions — logged as [`QUESTIONS.md#q9`](QUESTIONS.md#q9) rather than silently left unhandled.
+- **System health**: active/suspended tenant counts, total users, pending/failed (24h) queue jobs (real `jobs`/`failed_jobs` table counts, not placeholders), total document storage across every tenant (reusing Step 0.9's `documents.size`).
+- **Impersonation** (`App\Support\Impersonation\ImpersonationManager`): session-based, defensively re-validated on stop (a tampered session value is rejected, not trusted — no support for nested impersonation, since it was never a real requirement), and — the more interesting design choice — every start/stop writes a real audit log entry attributed to the **target's** tenant, so it shows up on that tenant's own Audit Log screen. "Logged" means visible to the org being supported, not just to platform staff. A persistent "You're impersonating X — Stop" banner lives in the shared layout.
+- **Two real bugs, both caught before or by the test suite rather than living in production:**
+  1. A Super Admin genuinely has no ambient tenant at all (not "the wrong one" — `IdentifyTenant` only sets one when `$user->tenant_id` is truthy, never true for Super Admin) — so `Auditable`'s automatic logging had nothing to fill `tenant_id` from when a Super Admin action triggered it, throwing a `NOT NULL constraint failed` on every write. Same root cause as D-031 (ambient test-context masking a real gap) — caught by verifying against the real database via `tinker`, not just the in-memory test DB. Fixed with a subject-derived fallback on `AuditLogEntry`. See [`DECISIONS.md#d-033`](DECISIONS.md#d-033).
+  2. The impersonation banner's Blade view had no root HTML element when idle (the common case) — since it lives in the *global* layout, this would have 500'd every single page in the app. Caught immediately by the very first `composer ci` run after wiring it in (every page-rendering test failed at once with the same stack trace), not by clicking a broken page live. See [`DECISIONS.md#d-034`](DECISIONS.md#d-034).
+- Verified against the live running server end to end, not just the 125-test suite: created a real tenant+admin via `tinker`, confirmed the real audit trail attributed it correctly (proving the D-033 fix against real persistent data), logged in as the new admin over a real HTTP session (organization: 200, super-admin: 403), suspended and reactivated the tenant while reproducing `LoginForm`'s exact suspension check against real data, and ran a full real impersonation cycle confirming the resulting audit entries render correctly on the target tenant's own Audit Log page.
+- 125 tests total (up from 108): `tests/Feature/SuperAdmin/{TenantManagementTest,ImpersonationTest}.php`.
+- Updated `docs/build/00-build-plan.md` (0.11 checked off, Phase 0 marked complete), logged `DECISIONS.md#d-033/d-034/d-035`, logged `QUESTIONS.md#q9`.
+
+**Phase 0 is complete.** Steps 0.1 through 0.11 are all done, live-verified, and tested. Phase 1 (the first real module — HRM) is next; see `docs/build/00-build-plan.md`'s Phase 1 section and `docs/04-module-hrm.md` for the real spec.
+
 ## 2026-09-27 — Phase 0 Step 0.10: reporting & export framework
 
 Continued from Step 0.9 (document store). Built the shared Excel/CSV/PDF export framework every module's future "Reports" screen will use, and wired it into a real, already-existing screen (the Audit Log) rather than a new throwaway demo page.

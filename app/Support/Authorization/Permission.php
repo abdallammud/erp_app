@@ -63,6 +63,13 @@ enum Permission: string
     case SafeguardingManage = 'safeguarding.manage';
     case SafeguardingViewSummary = 'safeguarding.view.summary';
 
+    // Platform (Super Admin portal) — see docs/build/00-build-plan.md
+    // Step 0.11. Deliberately one permission, not several: Super Admin
+    // is a single, all-or-nothing platform role in this design
+    // (docs/03-roles-and-permissions.md — no tiering within it), unlike
+    // every module above where fine-grained scopes matter.
+    case PlatformAdmin = 'platform.admin';
+
     /**
      * @return list<self>
      */

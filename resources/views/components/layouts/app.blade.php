@@ -9,6 +9,9 @@
     @livewireStyles
 </head>
 <body class="h-full font-sans antialiased text-slate-900">
+    @auth
+        @livewire('impersonation.banner')
+    @endauth
 
     {{--
         Employee Portal shell — nav items match the Nova Humanitarian HRM
@@ -83,6 +86,19 @@
                            class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 font-medium {{ request()->routeIs('audit-log') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
                             <x-icon name="history" class="h-[18px] w-[18px] shrink-0" />
                             <span>Audit Log</span>
+                        </a>
+                    </nav>
+                </div>
+            @endcan
+
+            @can(\App\Support\Authorization\Permission::PlatformAdmin->value)
+                <div class="mt-5 border-t border-slate-100 pt-4">
+                    <p class="px-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Platform</p>
+                    <nav class="mt-2 space-y-0.5 text-sm">
+                        <a href="{{ route('super-admin') }}"
+                           class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 font-medium {{ request()->routeIs('super-admin') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50' }}">
+                            <x-icon name="shield-check" class="h-[18px] w-[18px] shrink-0" />
+                            <span>Super Admin Portal</span>
                         </a>
                     </nav>
                 </div>

@@ -70,13 +70,21 @@ test('only Payroll/Finance Officer can approve payroll and finance', function ()
         ->and($hrAdmin->can(Permission::FinanceApprove->value))->toBeFalse();
 });
 
-test('Super Admin has no default tenant-business permissions', function () {
+test('Super Admin has no default tenant-business permissions, only the platform one', function () {
     $superAdmin = User::factory()->create(['tenant_id' => null]);
     $superAdmin->assignRole(Role::SuperAdmin->value);
 
     foreach (Permission::all() as $permission) {
+        if ($permission === Permission::PlatformAdmin) {
+            continue;
+        }
+
         expect($superAdmin->can($permission->value))->toBeFalse();
     }
+
+    // The one deliberate exception (Step 0.11) — not tenant business
+    // data, the platform layer Super Admin exists to operate.
+    expect($superAdmin->can(Permission::PlatformAdmin->value))->toBeTrue();
 });
 
 test('the demo tenant seeder produces one user per non-Super-Admin role, correctly assigned', function () {
