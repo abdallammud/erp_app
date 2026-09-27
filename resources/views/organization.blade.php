@@ -8,5 +8,6 @@
         @livewire('organization.departments')
         @livewire('organization.duty-stations')
         @livewire('organization.positions')
+        @livewire('organization.salary-grades')
     </div>
 </x-layouts.app>

@@ -325,5 +325,23 @@ Every technical/design decision and working assumption, in ADR-lite form: contex
 - **Verification:** tested that starting impersonation actually switches the authenticated user and correctly resolves `TenantContext` for the target through the *real* middleware pipeline (not `Livewire::test()`, which bypasses it — same discipline as D-031); that both start and stop write correctly-attributed audit entries; that those entries are visible on the target tenant's own Audit Log screen; that a non-Super-Admin cannot start one; that a Super Admin account can never be impersonated; and that a tampered `impersonator_id` session value is rejected rather than trusted.
 - **Status:** Implemented and tested.
 
+### D-036
+
+**`Position.grade` (free-text, from Phase 0 Step 0.5) is deliberately NOT converted into a foreign key to the new `SalaryGrade` table (Step 1.1) — they stay two separate concepts.**
+
+- **Context:** `Position`'s migration (Step 0.5) explicitly flagged its `grade` column as a placeholder: "becomes a proper foreign key to a tenant-configurable SalaryGrade once Phase 1 builds Payroll & Compensation." Now that `SalaryGrade` exists, the obvious-looking move is to make that conversion.
+- **Decision:** left `Position.grade` exactly as it was. Step 1.1's own checklist explicitly ties the salary grade link to **Contract**, not Position ("`contracts` table: type, start/end date, salary grade link"). Converting Position too would be real, working functionality, but it's scope beyond what this step actually asked for, would touch Phase 0's already-shipped, already-tested Organization screen for no requirement driving it, and conflates two genuinely different things a real HR system separates: a position's structural grade *label* (org-chart classification, e.g. "P3" as a job-family/seniority marker) versus an individual employee's actual contract's pay band (which can legitimately differ from their position's nominal grade — an acting/temporary assignment, a negotiated exception, etc.).
+- **Status:** Confirmed as a deliberate scope boundary, not an oversight — revisit only if a real future requirement (not just tidiness) asks for Position and SalaryGrade to be linked directly.
+
+### D-037
+
+**`national_id` is encrypted via Laravel's native `encrypted` cast, applied to that one column specifically — not a blanket policy of encrypting every personal-data field on Employee.**
+
+- **Context:** docs/02-architecture.md's security NFR is explicit and non-optional: "encrypted DB fields for sensitive data (national ID, bank details, safeguarding case content)." `Employee` (Step 1.1) is the first model with a `national_id` field.
+- **Decision:** `'national_id' => 'encrypted'` in `Employee::casts()` — transparent to every read/write in the app, backed by the same `APP_KEY`-based encryption already used for document contents (D-030), just via Laravel's built-in column-level cast instead of a manual `Crypt::encryptString()` call (no file-handling concerns here, so the native cast is the simpler, equally-correct tool). The migration uses `text`, not `string`, for this column — ciphertext (base64-encoded IV + value + MAC) is comfortably longer than the plaintext and can exceed a `varchar(255)`, found before it ever caused a truncated-ciphertext bug by checking Laravel's actual encrypted-string output format rather than assuming the original column size was fine.
+- **Not applied to** `phone`, `personal_email`, `date_of_birth`, `address` — real personal data, but not what the NFR names, and encrypting them would prevent any future search/sort/filter on those columns for no requirement currently asking for it. Scoped to exactly what the documented requirement calls out, matching the same "the stronger, checkable claim, not the broader unrequested one" reasoning as D-030.
+- **Verification:** a test creates an employee with a real `national_id`, then reads the column directly via `DB::table('employees')` (bypassing the model/cast entirely) and asserts the stored value contains no trace of the plaintext — the same "check the raw bytes, not just that the feature runs" discipline as D-030's document-encryption test. Also confirmed against the real dev database via `tinker`, not just the test double.
+- **Status:** Implemented and tested.
+
 ---
 **See also:** [`00-build-plan.md`](00-build-plan.md) · [`QUESTIONS.md`](QUESTIONS.md) · [`CHANGELOG.md`](CHANGELOG.md)

@@ -124,15 +124,18 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 ---
 
-## Phase 1 — HRM & Payroll
+## Phase 1 — HRM & Payroll `[~ in progress — 1.1 done]`
 
 *Full functional spec: [`../04-module-hrm.md`](../04-module-hrm.md).*
 
-### 1.1 Employee data model
-- [ ] `employees` table (links to `users` where the employee has portal access; not every historical employee needs a login)
-- [ ] `contracts` table: type, start/end date, salary grade link, renewal history
-- [ ] `salary_grades`, `allowance_types`, `deduction_types`, `tax_brackets` — all tenant-configurable
-- **DoD:** an employee can be created with a contract and a salary grade, entirely through UI, no seeders needed.
+### 1.1 Employee data model ✅ done (2026-09-27)
+- [x] `employees` table: `user_id` nullable/`nullOnDelete()` ("not every historical employee needs a login" — see this table's migration), own name/contact fields independent of any linked `User`, org-structure links (department/position/duty station, reusing Phase 0 Step 0.5), self-referential `reports_to_id`, `staff_category` and `status` as typed enums (`App\Support\Hrm\{StaffCategory,EmployeeStatus}`).
+- [x] `contracts` table: `type` (enum), `salary_grade_id` (required FK), start/end dates, `status`. Renewal history is just multiple `Contract` rows per employee ordered by `start_date` (`Employee::contracts()`) — no separate renewal table needed.
+- [x] `salary_grades` (full CRUD UI — see below), `allowance_types`, `deduction_types`, `tax_brackets` — all tenant-configurable, all migrated and modeled now. The latter three deliberately have **no UI yet**: they're not consumed by anything until Step 1.5 (Payroll & Compensation) actually calculates pay, and a config screen for numbers nothing reads yet would be UI with no purpose. Building their data model now (per this step's own checklist) without a premature UI mirrors the same "data model first, UI when there's a real consumer" pattern already used for `Document::verify()` in Step 0.9.
+- [x] `national_id` is encrypted at rest (Laravel's native `encrypted` cast) — the one field docs/02-architecture.md's security NFR explicitly names ("encrypted DB fields for sensitive data: national ID, bank details, ..."), not applied blanket to every PII column. Verified against the real database, not just a test double: the raw column value contains no trace of the plaintext.
+- [x] A real screen: `/employees` (`App\Livewire\Hrm\Employees`) — create/edit, with **the first Contract created atomically alongside the Employee** (a required Salary Grade selection is part of that same form) — an employee with no contract would technically satisfy "created" but not this step's actual DoD. Editing an existing employee touches only their own fields, not their contract; contract renewal/amendment is real Step 1.5 scope, not built here. `App\Livewire\Organization\SalaryGrades` (same CRUD shape as Departments/Positions/DutyStations) added as a 4th section on `/organization`, since a Contract needs real, UI-created grades to pick from — not seeded ones.
+- **DoD:** ✅ met — verified against the live running server, not just the 139-test suite: created real Department/Position/DutyStation/SalaryGrade records and then a real Employee + Contract via `tinker` (the exact same calls the Livewire component makes), confirmed via `DB::table('employees')` that `national_id`'s raw stored value contains no trace of the plaintext, and confirmed the `/employees` and `/organization` pages correctly render the new records (name, department, position, duty station, contract type, salary grade) — plus confirmed the new Employee/Contract rows already show up correctly on `/audit-log` for free, since both models use `Auditable`.
+- 139 tests total (up from 125), Pint and Larastan clean.
 
 ### 1.2 Employee Portal shell + profile
 - [ ] Employee Portal navigation shell (per [Roles & Permissions](../03-roles-and-permissions.md))

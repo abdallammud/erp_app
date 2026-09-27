@@ -53,3 +53,16 @@ parameters:
         -
             identifier: identical.alwaysFalse
             path: app/Notifications/Approvals/ApprovalDecisionMade.php
+
+        # Same method-based enum/date-cast false positive as above, hit
+        # again by Employee's `gender` (enum) and `date_of_birth` (date)
+        # casts in App\Livewire\Hrm\Employees::edit(). Re-verified via
+        # tinker (get_class($employee->gender) === Gender::class,
+        # get_class($employee->date_of_birth) === Carbon::class) before
+        # ignoring — see docs/build/DECISIONS.md Step 1.1.
+        -
+            identifier: property.nonObject
+            path: app/Livewire/Hrm/Employees.php
+        -
+            identifier: method.nonObject
+            path: app/Livewire/Hrm/Employees.php

@@ -35,6 +35,14 @@ Route::view('organization', 'organization')
     ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
     ->name('organization');
 
+// Build Plan Step 1.1 — the anchor HRM screen. View access is
+// HrmOrgView (same as Organization); mutation is gated per-action
+// inside App\Livewire\Hrm\Employees via HrmOrgEdit, same split as
+// Organization's own CRUD screens.
+Route::view('employees', 'employees')
+    ->middleware(['auth', 'can:'.Permission::HrmOrgView->value])
+    ->name('employees');
+
 // Build Plan Step 0.11 — outside every tenant by design (see
 // docs/02-architecture.md's Platform/Super Admin role). Not `verified`:
 // a Super Admin account, like any admin-created account, is

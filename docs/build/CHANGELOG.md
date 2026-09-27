@@ -4,6 +4,22 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-27 — Phase 1 Step 1.1: Employee data model
+
+Phase 1 begins. Built the anchor HRM record and everything Step 1.1's checklist named: `employees`, `contracts`, `salary_grades`, `allowance_types`, `deduction_types`, `tax_brackets`.
+
+- **`Employee`** is deliberately separate from `User`: `user_id` is nullable ("not every historical employee needs a login"), with its own name/contact fields independent of any linked portal account. Org-structure links (department/position/duty station) reuse Phase 0's Organization module directly; a self-referential `reports_to_id` covers reporting lines.
+- **`Contract`** requires a `SalaryGrade` — renewal history is just multiple `Contract` rows per employee ordered by `start_date`, no separate renewal table.
+- **`AllowanceType`/`DeductionType`/`TaxBracket`** are modeled and migrated now (Step 1.1's checklist names all three explicitly) but deliberately have no UI yet — nothing consumes them until Step 1.5 actually runs payroll, and a config screen for numbers nothing reads yet would be UI with no purpose.
+- **A real screen** (`/employees`) where creating an employee **creates their first Contract in the same atomic action** — an employee with no contract would satisfy "created" but not this step's actual DoD ("an employee can be created with a contract and a salary grade"). `SalaryGrades` CRUD (same shape as Departments/Positions/DutyStations) was added to `/organization` for the same reason: a Contract needs real, UI-created grades to choose from, not seeded ones.
+- **`national_id` is encrypted at rest** — the one field docs/02-architecture.md's security NFR explicitly names, not a blanket policy across every personal-data column. Used Laravel's native `encrypted` cast rather than a manual `Crypt::encryptString()` call; caught before it shipped that the column needed to be `text`, not `string` — ciphertext runs comfortably longer than the plaintext and can exceed a `varchar(255)`.
+- **A deliberate scope boundary, not an oversight:** `Position.grade` (a free-text placeholder from Phase 0 Step 0.5, explicitly flagged there as "becomes a proper FK once Phase 1 builds Payroll") was left exactly as-is rather than converted to a `SalaryGrade` foreign key — Step 1.1's own checklist ties the salary grade link to Contract, not Position, and a position's structural grade label is a genuinely different concept from an individual contract's actual pay band. See [`DECISIONS.md#d-036`](DECISIONS.md#d-036).
+- Verified against the live running server, not just the 139-test suite: created real Department/Position/DutyStation/SalaryGrade records and a real Employee+Contract via `tinker` (the same calls the Livewire component makes), confirmed the raw `national_id` database value contains no trace of the plaintext, and confirmed `/employees` and `/organization` correctly render everything — including the new Employee/Contract audit entries showing up on `/audit-log` automatically, for free, since both models already use `Auditable`.
+- 139 tests total (up from 125): `tests/Feature/Hrm/EmployeesComponentTest.php` and `tests/Feature/Organization/SalaryGradesTest.php`.
+- Updated `docs/build/00-build-plan.md` (1.1 checked off, Phase 1 marked in progress), logged `DECISIONS.md#d-036/d-037`.
+
+**Still not started:** Steps 1.2–1.16 (the rest of HRM & Payroll). Step 1.2 (Employee Portal shell + profile) is next.
+
 ## 2026-09-27 — Phase 0 Step 0.11: Super Admin portal — Phase 0 complete
 
 The last step of Phase 0. Continued from Step 0.10 (reporting). Built tenant CRUD, a basic cross-tenant system health view, and a logged impersonation flow — the platform layer that sits outside every tenant.
