@@ -6,6 +6,8 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 
 **Status legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
+**Visual design:** every screen built from 2026-09-27 onward must follow [`DESIGN.md`](DESIGN.md) (extracted from the Nova Humanitarian HRM reference PDF) — see [`DECISIONS.md#d-040`](DECISIONS.md#d-040). This is a standing requirement, not a one-time step.
+
 ---
 
 ## Phase 0 — Platform Foundation `[✅ complete — 0.1-0.11 done]`
@@ -127,6 +129,8 @@ The actual engineering checklist, derived from [`../09-roadmap.md`](../09-roadma
 ## Phase 1 — HRM & Payroll `[~ in progress — 1.1-1.2 done]`
 
 *Full functional spec: [`../04-module-hrm.md`](../04-module-hrm.md).*
+
+**2026-09-27 — visual design pivot (not a numbered step):** the app's UI had only ever followed the Nova HRM reference *functionally* (nav/fields/workflow), never visually — a generic Tailwind theme was substituted without sign-off. First retrofit pass done (layout/top bar, color system, new `<x-button>`/`<x-badge>`/`<x-stat-card>`/`<x-modal>` components, My Profile tabs, Dashboard); Organization/Employees/Audit Log/Super Admin/Approvals/Notifications retrofits still pending. See [`DECISIONS.md#d-040`](DECISIONS.md#d-040) and [`DESIGN.md`](DESIGN.md).
 
 ### 1.1 Employee data model ✅ done (2026-09-27)
 - [x] `employees` table: `user_id` nullable/`nullOnDelete()` ("not every historical employee needs a login" — see this table's migration), own name/contact fields independent of any linked `User`, org-structure links (department/position/duty station, reusing Phase 0 Step 0.5), self-referential `reports_to_id`, `staff_category` and `status` as typed enums (`App\Support\Hrm\{StaffCategory,EmployeeStatus}`).

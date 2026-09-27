@@ -19,7 +19,7 @@
                 <label class="block text-xs font-medium text-slate-600">Reason (optional)</label>
                 <textarea wire:model="reason" rows="2" class="mt-1 block w-full rounded-md border-slate-300 text-sm"></textarea>
             </div>
-            <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+            <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                 Submit for approval
             </button>
         </form>

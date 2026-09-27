@@ -12,9 +12,9 @@
 
             <div class="flex items-center gap-1 border-l border-slate-200 pl-2 text-xs">
                 <span class="text-slate-400">Export:</span>
-                <button wire:click="exportExcel" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">Excel</button>
-                <button wire:click="exportCsv" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">CSV</button>
-                <button wire:click="exportPdf" class="rounded px-1.5 py-1 font-semibold text-indigo-600 hover:bg-indigo-50">PDF</button>
+                <button wire:click="exportExcel" class="rounded px-1.5 py-1 font-semibold text-blue-600 hover:bg-blue-50">Excel</button>
+                <button wire:click="exportCsv" class="rounded px-1.5 py-1 font-semibold text-blue-600 hover:bg-blue-50">CSV</button>
+                <button wire:click="exportPdf" class="rounded px-1.5 py-1 font-semibold text-blue-600 hover:bg-blue-50">PDF</button>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
                         <span @class([
                             'rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide',
                             'bg-emerald-50 text-emerald-700' => $entry->event === 'created',
-                            'bg-indigo-50 text-indigo-700' => $entry->event === 'updated',
+                            'bg-blue-50 text-blue-700' => $entry->event === 'updated',
                             'bg-red-50 text-red-700' => $entry->event === 'deleted',
                         ])>
                             {{ $entry->event }}
@@ -58,7 +58,7 @@
 
                 @if ($fields->isNotEmpty())
                     <details class="mt-2">
-                        <summary class="cursor-pointer text-xs font-medium text-indigo-600 hover:text-indigo-500">
+                        <summary class="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-500">
                             {{ $fields->count() }} field{{ $fields->count() === 1 ? '' : 's' }} changed
                         </summary>
                         <table class="mt-2 w-full text-xs">

@@ -2,11 +2,11 @@
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-slate-900">My Profile</h1>
-            <p class="text-sm text-slate-500">{{ auth()->user()->email }}</p>
+            <p class="text-sm text-slate-500">View and manage your personal information</p>
         </div>
         <div class="flex flex-wrap gap-1.5">
             @foreach (auth()->user()->getRoleNames() as $role)
-                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">{{ $role }}</span>
+                <x-badge variant="info">{{ $role }}</x-badge>
             @endforeach
         </div>
     </div>
@@ -28,63 +28,59 @@
         </div>
     </div>
 
-    <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-base font-semibold text-slate-900">Edit Profile</h2>
-        <p class="mt-1 text-sm text-slate-500">Name and email — changes here are real, not a placeholder.</p>
-        <div class="mt-4 max-w-lg">
-            <livewire:profile.update-profile-information-form />
-        </div>
-    </div>
+    {{--
+        Tabbed, matching the Nova HRM reference's My Profile structure
+        exactly (Edit Profile | Personal Details | Employment |
+        Documents | History) — see docs/build/DESIGN.md. Every tab's
+        Livewire component mounts on page load; Alpine only toggles
+        which one is visible, so switching tabs is instant with no
+        extra request.
+    --}}
+    <div x-data="{ tab: 'edit' }" class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <nav class="flex gap-6 overflow-x-auto border-b border-slate-200 px-6">
+            @foreach ([
+                ['key' => 'edit', 'label' => 'Edit Profile', 'icon' => 'user'],
+                ['key' => 'personal', 'label' => 'Personal Details', 'icon' => 'user'],
+                ['key' => 'employment', 'label' => 'Employment', 'icon' => 'briefcase'],
+                ['key' => 'documents', 'label' => 'Documents', 'icon' => 'cube'],
+                ['key' => 'history', 'label' => 'History', 'icon' => 'history'],
+            ] as $tab)
+                <button
+                    type="button"
+                    x-on:click="tab = '{{ $tab['key'] }}'"
+                    :class="tab === '{{ $tab['key'] }}' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
+                    class="flex shrink-0 items-center gap-1.5 border-b-2 py-3.5 text-sm font-medium"
+                >
+                    <x-icon :name="$tab['icon']" class="h-4 w-4" />
+                    {{ $tab['label'] }}
+                </button>
+            @endforeach
+        </nav>
 
-    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center gap-2">
-            <x-icon name="cube" class="h-4 w-4 text-slate-400" />
-            <h3 class="text-sm font-semibold text-slate-700">Documents</h3>
-        </div>
-        <p class="mt-1 text-xs text-slate-500">
-            Build Plan Step 1.2 — ID, contract, certificates, expiry-tracked, attached to your employee record.
-        </p>
-        <div class="mt-4">
-            @livewire('employees.documents')
-        </div>
-    </div>
+        <div class="p-6">
+            <div x-show="tab === 'edit'" x-cloak>
+                <h2 class="text-base font-semibold text-slate-900">Edit Profile</h2>
+                <p class="mt-1 text-sm text-slate-500">Name and email — changes here are real, not a placeholder.</p>
+                <div class="mt-4 max-w-lg">
+                    <livewire:profile.update-profile-information-form />
+                </div>
+            </div>
 
-    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center gap-2">
-            <x-icon name="user" class="h-4 w-4 text-slate-400" />
-            <h3 class="text-sm font-semibold text-slate-700">Personal Details</h3>
-        </div>
-        <p class="mt-1 text-xs text-slate-500">
-            Build Plan Step 1.2 — contact information, dependents, emergency contacts, insurance beneficiaries.
-        </p>
-        <div class="mt-4">
-            @livewire('employees.personal-details')
-        </div>
-    </div>
+            <div x-show="tab === 'personal'" x-cloak>
+                @livewire('employees.personal-details')
+            </div>
 
-    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center gap-2">
-            <x-icon name="briefcase" class="h-4 w-4 text-slate-400" />
-            <h3 class="text-sm font-semibold text-slate-700">Employment</h3>
-        </div>
-        <p class="mt-1 text-xs text-slate-500">
-            Build Plan Step 1.2 — department, position, duty station, and contract history.
-        </p>
-        <div class="mt-4">
-            @livewire('employees.employment')
-        </div>
-    </div>
+            <div x-show="tab === 'employment'" x-cloak>
+                @livewire('employees.employment')
+            </div>
 
-    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center gap-2">
-            <x-icon name="history" class="h-4 w-4 text-slate-400" />
-            <h3 class="text-sm font-semibold text-slate-700">History</h3>
-        </div>
-        <p class="mt-1 text-xs text-slate-500">
-            Build Plan Step 1.2 — every change to your profile and employee record, fully audited.
-        </p>
-        <div class="mt-4">
-            @livewire('employees.history')
+            <div x-show="tab === 'documents'" x-cloak>
+                @livewire('employees.documents')
+            </div>
+
+            <div x-show="tab === 'history'" x-cloak>
+                @livewire('employees.history')
+            </div>
         </div>
     </div>
 </x-layouts.app>

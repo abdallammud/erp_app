@@ -55,7 +55,7 @@
                 @error('adminPassword') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div class="flex items-end">
-                <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+                <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                     Create tenant
                 </button>
             </div>
@@ -91,7 +91,7 @@
                                 <span class="text-slate-600">{{ $user->name }} <span class="text-slate-400">({{ $user->email }})</span></span>
                                 <button wire:click="impersonate({{ $user->id }})"
                                         wire:confirm="Impersonate {{ $user->name }}? This is logged."
-                                        class="font-semibold text-indigo-600 hover:text-indigo-500">
+                                        class="font-semibold text-blue-600 hover:text-blue-500">
                                     Impersonate
                                 </button>
                             </li>

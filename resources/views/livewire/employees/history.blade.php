@@ -9,7 +9,7 @@
                         <span @class([
                             'rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide',
                             'bg-emerald-50 text-emerald-700' => $entry->event === 'created',
-                            'bg-indigo-50 text-indigo-700' => $entry->event === 'updated',
+                            'bg-blue-50 text-blue-700' => $entry->event === 'updated',
                             'bg-red-50 text-red-700' => $entry->event === 'deleted',
                         ])>
                             {{ $entry->event }}

@@ -169,7 +169,7 @@
                 @endunless
 
                 <div class="flex gap-2">
-                    <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+                    <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                         {{ $editingId ? 'Save changes' : 'Add employee' }}
                     </button>
                     @if ($editingId)
@@ -207,7 +207,7 @@
                     @endif
                 </div>
                 @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
-                    <button wire:click="edit({{ $employee->id }})" class="text-xs font-semibold text-indigo-600 hover:text-indigo-500">
+                    <button wire:click="edit({{ $employee->id }})" class="text-xs font-semibold text-blue-600 hover:text-blue-500">
                         Edit
                     </button>
                 @endcan

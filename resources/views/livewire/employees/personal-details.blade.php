@@ -23,7 +23,7 @@
                     <input type="text" wire:model="address" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
                 </div>
                 <div class="sm:col-span-3">
-                    <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+                    <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                         Save contact info
                     </button>
                 </div>
@@ -89,7 +89,7 @@
                     </div>
                 @endif
                 <div class="sm:col-span-4 flex gap-2">
-                    <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+                    <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                         {{ $editingDependentId ? 'Save changes' : 'Add dependent' }}
                     </button>
                     @if ($editingDependentId)
@@ -110,13 +110,13 @@
                                 <span class="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Emergency contact</span>
                             @endif
                             @if ($dependent->is_insurance_beneficiary)
-                                <span class="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
+                                <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
                                     Beneficiary {{ $dependent->insurance_beneficiary_percentage }}%
                                 </span>
                             @endif
                         </div>
                         <div class="flex gap-3 text-xs">
-                            <button wire:click="editDependent({{ $dependent->id }})" class="font-semibold text-indigo-600 hover:text-indigo-500">Edit</button>
+                            <button wire:click="editDependent({{ $dependent->id }})" class="font-semibold text-blue-600 hover:text-blue-500">Edit</button>
                             <button wire:click="deleteDependent({{ $dependent->id }})" wire:confirm="Remove this dependent?" class="font-semibold text-red-600 hover:text-red-500">Remove</button>
                         </div>
                     </li>

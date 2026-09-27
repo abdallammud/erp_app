@@ -21,7 +21,7 @@
             </div>
             <div class="sm:col-span-1">
                 <button type="submit" wire:loading.attr="disabled" wire:target="upload,file"
-                        class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
+                        class="w-full rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50">
                     <span wire:loading.remove wire:target="upload">Upload</span>
                     <span wire:loading wire:target="upload">Uploading…</span>
                 </button>
@@ -47,7 +47,7 @@
                         </p>
                     </div>
                     <a href="{{ route('documents.download', $document) }}"
-                       class="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-500">
+                       class="shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-500">
                         Download
                     </a>
                 </div>

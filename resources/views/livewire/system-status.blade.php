@@ -28,7 +28,7 @@
     <button
         type="button"
         wire:click="refresh"
-        class="mt-5 inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        class="mt-5 inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
     >
         Refresh
     </button>

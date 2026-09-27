@@ -27,7 +27,7 @@
                 <input type="text" wire:model="address" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
             </div>
             <div class="sm:col-span-4 flex gap-2">
-                <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">
+                <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
                     {{ $editingId ? 'Save changes' : 'Add duty station' }}
                 </button>
                 @if ($editingId)
@@ -48,7 +48,7 @@
                 </div>
                 @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
                     <div class="flex gap-3 text-xs">
-                        <button wire:click="edit({{ $station->id }})" class="font-semibold text-indigo-600 hover:text-indigo-500">Edit</button>
+                        <button wire:click="edit({{ $station->id }})" class="font-semibold text-blue-600 hover:text-blue-500">Edit</button>
                         <button wire:click="delete({{ $station->id }})" wire:confirm="Remove this duty station?" class="font-semibold text-red-600 hover:text-red-500">Remove</button>
                     </div>
                 @endcan
