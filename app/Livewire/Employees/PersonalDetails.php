@@ -154,6 +154,13 @@ class PersonalDetails extends Component
         ];
     }
 
+    public function openCreateDependent(): void
+    {
+        $this->resetDependentForm();
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'dependent-form');
+    }
+
     public function editDependent(int $id): void
     {
         $dependent = $this->resolveEmployee()?->dependents()->findOrFail($id);
@@ -174,6 +181,8 @@ class PersonalDetails extends Component
         $this->insuranceBeneficiaryPercentage = $dependent->insurance_beneficiary_percentage !== null
             ? (string) $dependent->insurance_beneficiary_percentage
             : null;
+
+        $this->dispatch('open-modal', name: 'dependent-form');
     }
 
     public function saveDependent(): void
@@ -223,6 +232,7 @@ class PersonalDetails extends Component
 
         unset($this->dependents);
         $this->resetDependentForm();
+        $this->dispatch('close-modal', name: 'dependent-form');
     }
 
     public function deleteDependent(int $id): void
@@ -236,6 +246,7 @@ class PersonalDetails extends Component
     {
         $this->resetDependentForm();
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'dependent-form');
     }
 
     private function resetDependentForm(): void

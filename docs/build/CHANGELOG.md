@@ -4,6 +4,17 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-29 — Visual design pivot: PersonalDetails' dependent form retrofitted to a modal (fourth pass)
+
+Continues the design pivot. `App\Livewire\Employees\PersonalDetails`'s dependent form (Add/Edit Dependent, on My Profile's Personal Details tab) converted to `<x-modal name="dependent-form" maxWidth="lg">`, matching the reference's actual "Add New Dependent" modal — same `openCreateDependent()`/`editDependent()`-opens, `saveDependent()`/`cancelDependent()`-closes pattern as the previous two passes. Dependent list tags (relationship, emergency contact, insurance beneficiary %) switched to `<x-badge>`. Contact-info editing deliberately stayed an inline card, not a modal — it's a small settings form with no list to click through, and a modal there would cost a click for no benefit; see `DESIGN.md` for the reasoning written down so it isn't mistaken for an oversight later.
+
+- Same modal-contract regression test added to `PersonalDetailsComponentTest.php`.
+- `composer ci`: 161 tests (up from 160), Pint and Larastan clean.
+- Verified live: needed a real Employee record to actually exercise this (the reseeded dev database from the last two sessions had zero `Employee` rows — `DemoTenantSeeder` doesn't create one), so created one via `tinker` linked to `employee@demo.test` (mirrors the same verification a prior session did for Step 1.2, which hadn't persisted through a later `migrate:fresh --seed`). Confirmed `/my-profile`'s Personal Details tab renders "Add dependent" and the modal markup correctly against the real dev server.
+- Updated `DESIGN.md`'s retrofitted/pending lists.
+
+**Still pending:** Audit Log, Super Admin, Approvals demo, Notifications.
+
 ## 2026-09-29 — Visual design pivot: Employees retrofitted to a modal form (third pass)
 
 Continues the design pivot. Employees create/edit (`App\Livewire\Hrm\Employees`) converted from its large inline form to `<x-modal name="employee-form" maxWidth="2xl">` — same `openCreate()`/`edit()`-dispatches-open, `save()`/`cancel()`-dispatches-close pattern as Organization's four components (see the entry directly below). Added `2xl`/`3xl` width options to `<x-modal>` since this form (14+ fields across employee + first-contract sections) didn't fit comfortably at the existing `xl` cap.

@@ -35,6 +35,32 @@ test('an employee can update their own contact information', function () {
         ->and($employee->fresh()->personal_email)->toBe('me@example.test');
 });
 
+test('openCreateDependent resets the form and opens the modal; save closes it', function () {
+    $user = User::factory()->create();
+    Employee::factory()->create(['user_id' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(PersonalDetails::class)
+        ->set('firstName', 'stale value')
+        ->call('openCreateDependent')
+        ->assertSet('firstName', '')
+        ->assertDispatched('open-modal', name: 'dependent-form')
+        ->set('firstName', 'Layla')
+        ->set('lastName', 'Ahmed')
+        ->set('relationship', 'child')
+        ->call('saveDependent')
+        ->assertDispatched('close-modal', name: 'dependent-form');
+
+    $dependent = Dependent::sole();
+
+    Livewire::actingAs($user)
+        ->test(PersonalDetails::class)
+        ->call('editDependent', $dependent->id)
+        ->assertDispatched('open-modal', name: 'dependent-form')
+        ->call('cancelDependent')
+        ->assertDispatched('close-modal', name: 'dependent-form');
+});
+
 test('a dependent can be added, edited, and removed', function () {
     $user = User::factory()->create();
     $employee = Employee::factory()->create(['user_id' => $user->id]);
