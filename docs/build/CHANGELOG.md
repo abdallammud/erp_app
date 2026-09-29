@@ -4,6 +4,22 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-29 — Visual design pivot: remaining screens retrofitted (fifth pass — pending list now empty)
+
+Continues and closes out the design pivot's initial retrofit sweep. Covers everything left on `DESIGN.md`'s pending list: Super Admin, Audit Log, Approvals demo, and a review of Notifications.
+
+- **Super Admin** (`App\Livewire\SuperAdmin\Dashboard`): "Create a new tenant" converted from an always-visible inline form to `<x-modal name="tenant-form">` behind an "Add tenant" button on the Tenants card — same `openCreate()`-opens/`createTenant()`-closes pattern as the other modal conversions (no `cancel()` action existed before, so the Cancel button just closes client-side via `x-on:click="show = false"`, since there's no lingering edit-mode state to reset — this form has no edit mode, only create). Tenant Active/Suspended tags switched to `<x-badge>`.
+- **Audit Log**: event tags (created/updated/deleted) switched from a hand-rolled `@class` conditional to `<x-badge variant="success|info|danger">`.
+- **Approvals demo**: Submit/Approve/Reject buttons switched to `<x-button>` — added a new `success` (emerald) variant to `<x-button>` since Approve needed a color distinct from the near-black default and from Reject's red. Request status now `<x-badge>`.
+- **Notifications**: reviewed, not changed — already uses blue accents consistently and has no create/edit form to modal-ize (it's a read-only inbox with mark-as-read actions), so nothing to retrofit.
+- **Deliberately not modal-ized**, and why (see `DESIGN.md`): Approvals demo's "Submit a test request" form and PersonalDetails' contact-info form are always-visible single forms with no list of existing items to click through — the modal pattern is for "click Add/Edit on a list row," not every form.
+- Regression test added for the new Super Admin modal dispatch (`TenantManagementTest.php`), same pattern as the other four passes.
+- `composer ci`: 162 tests (up from 161), Pint and Larastan clean.
+- Verified live against the dev server (temporary `/__demo-login` route, added and removed surgically): `/super-admin` renders "Add tenant" and the modal; `/approvals-demo` and `/audit-log` render without error.
+- `DESIGN.md` updated to reflect the pending list is now empty — every screen that existed before this pivot started has been retrofitted. The standing rule (every *new* screen follows this system from the start) continues from here.
+
+**Pending list is now empty.** Future UI work follows `DESIGN.md` from the start, per the user's standing instruction — no more "retrofit debt" to track.
+
 ## 2026-09-29 — Visual design pivot: PersonalDetails' dependent form retrofitted to a modal (fourth pass)
 
 Continues the design pivot. `App\Livewire\Employees\PersonalDetails`'s dependent form (Add/Edit Dependent, on My Profile's Personal Details tab) converted to `<x-modal name="dependent-form" maxWidth="lg">`, matching the reference's actual "Add New Dependent" modal — same `openCreateDependent()`/`editDependent()`-opens, `saveDependent()`/`cancelDependent()`-closes pattern as the previous two passes. Dependent list tags (relationship, emergency contact, insurance beneficiary %) switched to `<x-badge>`. Contact-info editing deliberately stayed an inline card, not a modal — it's a small settings form with no list to click through, and a modal there would cost a click for no benefit; see `DESIGN.md` for the reasoning written down so it isn't mistaken for an oversight later.

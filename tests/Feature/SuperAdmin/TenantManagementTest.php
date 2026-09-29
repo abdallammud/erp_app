@@ -35,6 +35,21 @@ test('a Super Admin can reach the Super Admin portal', function () {
     $this->actingAs($this->superAdmin)->get('/super-admin')->assertOk();
 });
 
+test('openCreate resets the form and opens the modal; createTenant closes it', function () {
+    Livewire::actingAs($this->superAdmin)
+        ->test(Dashboard::class)
+        ->set('name', 'stale value')
+        ->call('openCreate')
+        ->assertSet('name', '')
+        ->assertDispatched('open-modal', name: 'tenant-form')
+        ->set('name', 'Modal Test NGO')
+        ->set('adminName', 'Modal Admin')
+        ->set('adminEmail', 'modal-admin@modal-test-ngo.test')
+        ->set('adminPassword', 'temporary-password')
+        ->call('createTenant')
+        ->assertDispatched('close-modal', name: 'tenant-form');
+});
+
 test('creating a tenant creates its first admin too, and that admin can log in and use the app immediately', function () {
     Livewire::actingAs($this->superAdmin)
         ->test(Dashboard::class)

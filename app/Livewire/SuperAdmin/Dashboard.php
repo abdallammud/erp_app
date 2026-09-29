@@ -90,6 +90,13 @@ class Dashboard extends Component
      * org to start configuring itself from (docs/03-roles-and-
      * permissions.md).
      */
+    public function openCreate(): void
+    {
+        $this->reset(['name', 'adminName', 'adminEmail', 'adminPassword']);
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'tenant-form');
+    }
+
     public function createTenant(): void
     {
         $validated = $this->validate();
@@ -110,6 +117,7 @@ class Dashboard extends Component
 
         unset($this->tenants);
         $this->reset(['name', 'adminName', 'adminEmail', 'adminPassword']);
+        $this->dispatch('close-modal', name: 'tenant-form');
         session()->flash('status', 'Tenant created — its admin can log in immediately.');
     }
 

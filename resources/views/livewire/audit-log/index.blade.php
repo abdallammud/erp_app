@@ -24,14 +24,12 @@
             <div wire:key="{{ $entry->id }}" class="border-b border-slate-100 px-5 py-4 last:border-b-0">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-2.5">
-                        <span @class([
-                            'rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide',
-                            'bg-emerald-50 text-emerald-700' => $entry->event === 'created',
-                            'bg-blue-50 text-blue-700' => $entry->event === 'updated',
-                            'bg-red-50 text-red-700' => $entry->event === 'deleted',
-                        ])>
-                            {{ $entry->event }}
-                        </span>
+                        <x-badge :variant="match ($entry->event) {
+                            'created' => 'success',
+                            'updated' => 'info',
+                            'deleted' => 'danger',
+                            default => 'neutral',
+                        }" class="uppercase tracking-wide">{{ $entry->event }}</x-badge>
                         <span class="text-sm font-medium text-slate-900">
                             {{ class_basename($entry->subject_type) }} #{{ $entry->subject_id }}
                         </span>

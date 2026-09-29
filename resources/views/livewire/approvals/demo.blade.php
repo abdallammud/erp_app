@@ -19,9 +19,7 @@
                 <label class="block text-xs font-medium text-slate-600">Reason (optional)</label>
                 <textarea wire:model="reason" rows="2" class="mt-1 block w-full rounded-md border-slate-300 text-sm"></textarea>
             </div>
-            <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
-                Submit for approval
-            </button>
+            <x-button type="submit">Submit for approval</x-button>
         </form>
     </div>
 
@@ -48,14 +46,12 @@
                               class="mt-3 block w-full rounded-md border-slate-300 text-xs"></textarea>
 
                     <div class="mt-2 flex gap-2">
-                        <button wire:click="approve({{ $instance->id }})" wire:confirm="Approve this request?"
-                                class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500">
+                        <x-button variant="success" wire:click="approve({{ $instance->id }})" wire:confirm="Approve this request?">
                             Approve
-                        </button>
-                        <button wire:click="reject({{ $instance->id }})" wire:confirm="Reject this request?"
-                                class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500">
+                        </x-button>
+                        <x-button variant="danger" wire:click="reject({{ $instance->id }})" wire:confirm="Reject this request?">
                             Reject
-                        </button>
+                        </x-button>
                     </div>
                 </div>
             @empty
@@ -72,9 +68,13 @@
                 <div class="rounded-lg border border-slate-100 p-4">
                     <div class="flex items-center justify-between">
                         <p class="text-sm font-semibold text-slate-900">{{ $request->title }}</p>
-                        <span class="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            {{ $request->approvalInstance?->status->value }}
-                        </span>
+                        @if ($request->approvalInstance)
+                            <x-badge :variant="match ($request->approvalInstance->status->value) {
+                                'approved' => 'success',
+                                'rejected' => 'danger',
+                                default => 'neutral',
+                            }" class="uppercase tracking-wide">{{ $request->approvalInstance->status->value }}</x-badge>
+                        @endif
                     </div>
                     @if ($request->approvalInstance)
                         <div class="mt-3">
