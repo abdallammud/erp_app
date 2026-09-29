@@ -45,6 +45,16 @@ class SalaryGrades extends Component
         return SalaryGrade::orderBy('name')->get();
     }
 
+    public function openCreate(): void
+    {
+        $this->authorize(Permission::HrmOrgEdit->value);
+
+        $this->reset(['editingId', 'name', 'code', 'minSalary', 'maxSalary']);
+        $this->currency = 'USD';
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'salary-grade-form');
+    }
+
     public function edit(int $id): void
     {
         $this->authorize(Permission::HrmOrgEdit->value);
@@ -57,6 +67,8 @@ class SalaryGrades extends Component
         $this->minSalary = (string) $grade->min_salary;
         $this->maxSalary = (string) $grade->max_salary;
         $this->currency = $grade->currency;
+
+        $this->dispatch('open-modal', name: 'salary-grade-form');
     }
 
     public function save(): void
@@ -82,6 +94,7 @@ class SalaryGrades extends Component
         unset($this->salaryGrades);
         $this->reset(['editingId', 'name', 'code', 'minSalary', 'maxSalary']);
         $this->currency = 'USD';
+        $this->dispatch('close-modal', name: 'salary-grade-form');
     }
 
     public function delete(int $id): void
@@ -98,6 +111,7 @@ class SalaryGrades extends Component
         $this->reset(['editingId', 'name', 'code', 'minSalary', 'maxSalary']);
         $this->currency = 'USD';
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'salary-grade-form');
     }
 
     public function render()

@@ -34,6 +34,21 @@ test('an HR Admin can create a position linked to a department', function () {
         ->and($position->department->name)->toBe('Logistics');
 });
 
+test('openCreate resets the form and opens the modal; save closes it', function () {
+    $hrAdmin = User::factory()->create();
+    $hrAdmin->assignRole(Role::HrAdmin->value);
+
+    Livewire::actingAs($hrAdmin)
+        ->test(Positions::class)
+        ->set('title', 'stale value')
+        ->call('openCreate')
+        ->assertSet('title', '')
+        ->assertDispatched('open-modal', name: 'position-form')
+        ->set('title', 'Logistics Officer')
+        ->call('save')
+        ->assertDispatched('close-modal', name: 'position-form');
+});
+
 test('a Procurement Officer cannot manage positions', function () {
     $procurementOfficer = User::factory()->create();
     $procurementOfficer->assignRole(Role::ProcurementOfficer->value);

@@ -57,6 +57,36 @@ test('an HR Admin can create, edit, and remove a department', function () {
         ->and(Department::withTrashed()->count())->toBe(1);
 });
 
+test('openCreate resets the form and opens the modal; save closes it', function () {
+    // Regression coverage for the modal contract itself (see
+    // docs/build/DESIGN.md) — a prior version of x-modal's close-modal
+    // listener compared $event.detail (an object, from Livewire's
+    // dispatch()) against a plain string and could never match, so
+    // "close" silently never fired. This locks in that dispatch() is
+    // actually called with the right event/name pair.
+    $hrAdmin = User::factory()->create();
+    $hrAdmin->assignRole(Role::HrAdmin->value);
+
+    Livewire::actingAs($hrAdmin)
+        ->test(Departments::class)
+        ->set('name', 'stale value')
+        ->call('openCreate')
+        ->assertSet('name', '')
+        ->assertDispatched('open-modal', name: 'department-form')
+        ->set('name', 'Health & Nutrition')
+        ->call('save')
+        ->assertDispatched('close-modal', name: 'department-form');
+
+    $department = Department::sole();
+
+    Livewire::actingAs($hrAdmin)
+        ->test(Departments::class)
+        ->call('edit', $department->id)
+        ->assertDispatched('open-modal', name: 'department-form')
+        ->call('cancel')
+        ->assertDispatched('close-modal', name: 'department-form');
+});
+
 test('a Country Director can view departments but cannot create one', function () {
     $director = User::factory()->create();
     $director->assignRole(Role::CountryDirector->value);

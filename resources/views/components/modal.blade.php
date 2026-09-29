@@ -5,17 +5,24 @@
 @endphp
 
 {{--
+    Detail is always an object with a `name` key — this matches what
+    Livewire's own `$this->dispatch(...)` produces (named params become
+    the detail object), so both a Livewire action and a plain DOM/Alpine
+    trigger use the exact same shape:
+
     Trigger from anywhere with a plain DOM event (no Alpine scope
     needed on the trigger itself):
-    onclick="window.dispatchEvent(new CustomEvent('open-modal', {detail: '{{ $name }}'}))"
+    onclick="window.dispatchEvent(new CustomEvent('open-modal', {detail: {name: '{{ $name }}'}}))"
+
+    Or from Alpine: $dispatch('open-modal', { name: '{{ $name }}' })
 
     Close from a Livewire action after a successful save by dispatching
     a browser event: $this->dispatch('close-modal', name: '{{ $name }}');
 --}}
 <div
     x-data="{ show: false }"
-    x-on:open-modal.window="if ($event.detail === '{{ $name }}') show = true"
-    x-on:close-modal.window="if (!$event.detail || $event.detail === '{{ $name }}') show = false"
+    x-on:open-modal.window="if ($event.detail?.name === '{{ $name }}') show = true"
+    x-on:close-modal.window="if (!$event.detail?.name || $event.detail.name === '{{ $name }}') show = false"
     x-on:keydown.escape.window="show = false"
     x-show="show"
     x-cloak

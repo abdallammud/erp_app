@@ -37,6 +37,15 @@ class Departments extends Component
         return Department::with('parent')->orderBy('name')->get();
     }
 
+    public function openCreate(): void
+    {
+        $this->authorize(Permission::HrmOrgEdit->value);
+
+        $this->reset(['editingId', 'name', 'code', 'parentDepartmentId']);
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'department-form');
+    }
+
     public function edit(int $id): void
     {
         $this->authorize(Permission::HrmOrgEdit->value);
@@ -47,6 +56,8 @@ class Departments extends Component
         $this->name = $department->name;
         $this->code = $department->code;
         $this->parentDepartmentId = $department->parent_department_id;
+
+        $this->dispatch('open-modal', name: 'department-form');
     }
 
     public function save(): void
@@ -77,6 +88,7 @@ class Departments extends Component
 
         unset($this->departments);
         $this->reset(['editingId', 'name', 'code', 'parentDepartmentId']);
+        $this->dispatch('close-modal', name: 'department-form');
     }
 
     public function delete(int $id): void
@@ -92,6 +104,7 @@ class Departments extends Component
     {
         $this->reset(['editingId', 'name', 'code', 'parentDepartmentId']);
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'department-form');
     }
 
     public function render()

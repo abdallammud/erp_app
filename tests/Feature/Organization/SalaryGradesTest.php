@@ -49,6 +49,24 @@ test('an HR Admin can create, edit, and remove a salary grade', function () {
         ->and(SalaryGrade::withTrashed()->count())->toBe(1);
 });
 
+test('openCreate resets the form and opens the modal; save closes it', function () {
+    $hrAdmin = User::factory()->create();
+    $hrAdmin->assignRole(Role::HrAdmin->value);
+
+    Livewire::actingAs($hrAdmin)
+        ->test(SalaryGrades::class)
+        ->set('name', 'stale value')
+        ->call('openCreate')
+        ->assertSet('name', '')
+        ->assertDispatched('open-modal', name: 'salary-grade-form')
+        ->set('name', 'Grade P3')
+        ->set('code', 'P3')
+        ->set('minSalary', '1000')
+        ->set('maxSalary', '2000')
+        ->call('save')
+        ->assertDispatched('close-modal', name: 'salary-grade-form');
+});
+
 test('max salary must be at least min salary', function () {
     $hrAdmin = User::factory()->create();
     $hrAdmin->assignRole(Role::HrAdmin->value);

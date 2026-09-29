@@ -44,6 +44,15 @@ class DutyStations extends Component
         return DutyStation::orderBy('name')->get();
     }
 
+    public function openCreate(): void
+    {
+        $this->authorize(Permission::HrmOrgEdit->value);
+
+        $this->reset(['editingId', 'name', 'code', 'countryCode', 'city', 'address']);
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'duty-station-form');
+    }
+
     public function edit(int $id): void
     {
         $this->authorize(Permission::HrmOrgEdit->value);
@@ -56,6 +65,8 @@ class DutyStations extends Component
         $this->countryCode = $station->country_code;
         $this->city = $station->city;
         $this->address = $station->address;
+
+        $this->dispatch('open-modal', name: 'duty-station-form');
     }
 
     public function save(): void
@@ -75,6 +86,7 @@ class DutyStations extends Component
 
         unset($this->dutyStations);
         $this->reset(['editingId', 'name', 'code', 'countryCode', 'city', 'address']);
+        $this->dispatch('close-modal', name: 'duty-station-form');
     }
 
     public function delete(int $id): void
@@ -90,6 +102,7 @@ class DutyStations extends Component
     {
         $this->reset(['editingId', 'name', 'code', 'countryCode', 'city', 'address']);
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'duty-station-form');
     }
 
     public function render()

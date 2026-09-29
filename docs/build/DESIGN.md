@@ -27,9 +27,13 @@ Binding for every screen built from here forward — see [`DECISIONS.md#d-040`](
 
 ## Applied so far vs. still pending
 
-**Retrofitted to this system:** global layout/top bar, all Blade files' color tokens (indigo→blue, primary buttons→slate-900), My Profile (tabbed), Dashboard (profile header card + stat cards + quick actions, `Home.php`/`home.blade.php`).
+**Retrofitted to this system:** global layout/top bar, all Blade files' color tokens (indigo→blue, primary buttons→slate-900), My Profile (tabbed), Dashboard (profile header card + stat cards + quick actions, `Home.php`/`home.blade.php`), Organization — all four sections (Departments/DutyStations/Positions/SalaryGrades) now use `<x-modal>` create/edit forms instead of inline forms, plus `<x-badge>` for code/grade tags. The legacy Breeze `/profile` page's Delete Account confirmation was also fixed to use the current modal contract (it was still on the pre-rewrite Jetstream-style `<x-modal :show focusable>` API and had silently broken — see the "modal open/close event contract" note below).
 
-**Still using the old ad-hoc styling / inline forms, pending retrofit:** Organization (Departments/DutyStations/Positions/SalaryGrades — inline forms, not yet converted to `<x-modal>`), Employees create/edit form, Audit Log, Super Admin portal, Approvals demo, Notifications, PersonalDetails' dependent/contact-info forms, coming-soon placeholder pages. Track progress against this list rather than assuming "the design pivot" is a single finished step — see `CHANGELOG.md` for what's landed in which session.
+**Still using the old ad-hoc styling / inline forms, pending retrofit:** Employees create/edit form, Audit Log, Super Admin portal, Approvals demo, Notifications, PersonalDetails' dependent/contact-info forms, coming-soon placeholder pages. Track progress against this list rather than assuming "the design pivot" is a single finished step — see `CHANGELOG.md` for what's landed in which session.
+
+## Modal open/close event contract (bug fixed 2026-09-29)
+
+`<x-modal>`'s `open-modal`/`close-modal` window events always carry an **object** detail with a `name` key — `{ name: '...' }` — never a bare string. This matches what Livewire's own `$this->dispatch('close-modal', name: '...')` produces (named params become the detail object); a plain JS/Alpine trigger must match that shape too: `$dispatch('open-modal', { name: '...' })`, not `$dispatch('open-modal', '...')`. An earlier version of the listener compared `$event.detail` directly against the modal's name string, which could only ever match a bare-string dispatch — a Livewire-side `close-modal` dispatch (always object-shaped) silently never closed anything. Caught while wiring Organization's modals, not by any automated test (Blade/Alpine event wiring isn't something Larastan/Pest/Pint can see) — a Pest test was added per Organization component afterward (`assertDispatched('open-modal', name: '...')` / `assertDispatched('close-modal', name: '...')`) specifically to lock in the dispatch call is made correctly, even though it can't verify the Alpine listener itself receives and applies it.
 
 ## Rule going forward
 

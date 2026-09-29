@@ -45,6 +45,15 @@ class Positions extends Component
         return Department::orderBy('name')->get();
     }
 
+    public function openCreate(): void
+    {
+        $this->authorize(Permission::HrmOrgEdit->value);
+
+        $this->reset(['editingId', 'title', 'grade', 'departmentId']);
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'position-form');
+    }
+
     public function edit(int $id): void
     {
         $this->authorize(Permission::HrmOrgEdit->value);
@@ -55,6 +64,8 @@ class Positions extends Component
         $this->title = $position->title;
         $this->grade = $position->grade;
         $this->departmentId = $position->department_id;
+
+        $this->dispatch('open-modal', name: 'position-form');
     }
 
     public function save(): void
@@ -73,6 +84,7 @@ class Positions extends Component
 
         unset($this->positions);
         $this->reset(['editingId', 'title', 'grade', 'departmentId']);
+        $this->dispatch('close-modal', name: 'position-form');
     }
 
     public function delete(int $id): void
@@ -88,6 +100,7 @@ class Positions extends Component
     {
         $this->reset(['editingId', 'title', 'grade', 'departmentId']);
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'position-form');
     }
 
     public function render()

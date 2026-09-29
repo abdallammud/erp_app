@@ -1,50 +1,24 @@
 <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h2 class="text-base font-semibold text-slate-900">Positions</h2>
-    <p class="mt-1 text-sm text-slate-500">Job title/grade slots this tenant defines for itself.</p>
-
-    @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
-        <form wire:submit="save" class="mt-4 grid grid-cols-1 gap-3 rounded-lg bg-slate-50 p-4 sm:grid-cols-4">
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-medium text-slate-600">Title</label>
-                <input type="text" wire:model="title" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
-                @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-600">Grade</label>
-                <input type="text" wire:model="grade" placeholder="P3" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-600">Department</label>
-                <select wire:model="departmentId" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
-                    <option value="">— None —</option>
-                    @foreach ($this->departmentOptions as $department)
-                        <option value="{{ $department->id }}">{{ $department->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="sm:col-span-4 flex gap-2">
-                <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
-                    {{ $editingId ? 'Save changes' : 'Add position' }}
-                </button>
-                @if ($editingId)
-                    <button type="button" wire:click="cancel" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600">
-                        Cancel
-                    </button>
-                @endif
-            </div>
-        </form>
-    @endcan
+    <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <h2 class="text-base font-semibold text-slate-900">Positions</h2>
+            <p class="mt-1 text-sm text-slate-500">Job title/grade slots this tenant defines for itself.</p>
+        </div>
+        @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
+            <x-button wire:click="openCreate">Add position</x-button>
+        @endcan
+    </div>
 
     <ul class="mt-4 divide-y divide-slate-100">
         @forelse ($this->positions as $position)
-            <li class="flex items-center justify-between py-2.5 text-sm">
-                <div>
+            <li wire:key="{{ $position->id }}" class="flex items-center justify-between py-2.5 text-sm">
+                <div class="flex flex-wrap items-center gap-2">
                     <span class="font-medium text-slate-900">{{ $position->title }}</span>
                     @if ($position->grade)
-                        <span class="ml-2 text-xs text-slate-400">{{ $position->grade }}</span>
+                        <x-badge variant="neutral">{{ $position->grade }}</x-badge>
                     @endif
                     @if ($position->department)
-                        <span class="ml-2 text-xs text-slate-400">{{ $position->department->name }}</span>
+                        <span class="text-xs text-slate-400">{{ $position->department->name }}</span>
                     @endif
                 </div>
                 @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
@@ -58,4 +32,39 @@
             <li class="py-2.5 text-sm text-slate-400">No positions yet.</li>
         @endforelse
     </ul>
+
+    @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
+        <x-modal name="position-form">
+            <x-modal-header
+                :title="$editingId ? 'Edit Position' : 'Add Position'"
+                subtitle="Job title/grade slots this tenant defines for itself."
+            />
+            <form wire:submit="save" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600">Title</label>
+                    <input type="text" wire:model="title" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
+                    @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600">Grade</label>
+                        <input type="text" wire:model="grade" placeholder="P3" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600">Department</label>
+                        <select wire:model="departmentId" class="mt-1 block w-full rounded-md border-slate-300 text-sm">
+                            <option value="">— None —</option>
+                            @foreach ($this->departmentOptions as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <x-button type="button" variant="secondary" wire:click="cancel">Cancel</x-button>
+                    <x-button type="submit">{{ $editingId ? 'Save changes' : 'Add position' }}</x-button>
+                </div>
+            </form>
+        </x-modal>
+    @endcan
 </div>
