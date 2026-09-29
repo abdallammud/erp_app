@@ -153,6 +153,15 @@ class Employees extends Component
             ->get();
     }
 
+    public function openCreate(): void
+    {
+        $this->authorize(Permission::HrmOrgEdit->value);
+
+        $this->resetForm();
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', name: 'employee-form');
+    }
+
     public function edit(int $id): void
     {
         $this->authorize(Permission::HrmOrgEdit->value);
@@ -176,6 +185,8 @@ class Employees extends Component
         $this->userId = $employee->user_id;
         $this->staffCategory = $employee->staff_category->value;
         $this->hireDate = $employee->hire_date->toDateString();
+
+        $this->dispatch('open-modal', name: 'employee-form');
     }
 
     public function save(): void
@@ -222,12 +233,14 @@ class Employees extends Component
 
         unset($this->employees, $this->linkableUsers);
         $this->resetForm();
+        $this->dispatch('close-modal', name: 'employee-form');
     }
 
     public function cancel(): void
     {
         $this->resetForm();
         $this->resetErrorBag();
+        $this->dispatch('close-modal', name: 'employee-form');
     }
 
     private function resetForm(): void

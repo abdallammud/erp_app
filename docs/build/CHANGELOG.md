@@ -4,6 +4,17 @@ Dated, running log of what was actually done. Newest entry at the top. This is a
 
 ---
 
+## 2026-09-29 — Visual design pivot: Employees retrofitted to a modal form (third pass)
+
+Continues the design pivot. Employees create/edit (`App\Livewire\Hrm\Employees`) converted from its large inline form to `<x-modal name="employee-form" maxWidth="2xl">` — same `openCreate()`/`edit()`-dispatches-open, `save()`/`cancel()`-dispatches-close pattern as Organization's four components (see the entry directly below). Added `2xl`/`3xl` width options to `<x-modal>` since this form (14+ fields across employee + first-contract sections) didn't fit comfortably at the existing `xl` cap.
+
+- Same modal-contract regression test added to `EmployeesComponentTest.php`.
+- `composer ci`: 160 tests (up from 159), Pint and Larastan clean.
+- Verified live: `/employees` renders the "Add employee" button and modal markup correctly against the real dev server (temporary `/__demo-login` route, added and removed surgically as before).
+- Updated `DESIGN.md`'s retrofitted/pending lists.
+
+**Still pending:** Audit Log, Super Admin, Approvals demo, Notifications, PersonalDetails' dependent/contact forms.
+
 ## 2026-09-29 — Visual design pivot: Organization retrofitted to modals (second pass)
 
 Continues the 2026-09-27 design pivot (see `DECISIONS.md#d-040`, `DESIGN.md`). This session: Organization's four CRUD sections converted from inline forms to the `<x-modal>` pattern, plus a real bug found and fixed in the modal component itself.

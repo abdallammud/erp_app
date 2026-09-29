@@ -1,8 +1,51 @@
 <div class="space-y-6">
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
+            <h2 class="text-base font-semibold text-slate-900">Employees</h2>
+            @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
+                <x-button wire:click="openCreate">Add employee</x-button>
+            @endcan
+        </div>
+        @forelse ($this->employees as $employee)
+            @php($contract = $employee->currentContract())
+            <div wire:key="{{ $employee->id }}" class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4 last:border-b-0">
+                <div>
+                    <p class="text-sm font-semibold text-slate-900">
+                        {{ $employee->fullName() }}
+                        <span class="ml-1 text-xs font-normal text-slate-400">{{ $employee->employee_number }}</span>
+                    </p>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                        {{ $employee->position?->title ?? 'No position' }}
+                        @if ($employee->department) &middot; {{ $employee->department->name }} @endif
+                        @if ($employee->dutyStation) &middot; {{ $employee->dutyStation->name }} @endif
+                    </p>
+                    @if ($contract)
+                        <p class="mt-0.5 text-xs text-slate-400">
+                            {{ ucwords(str_replace('_', ' ', $contract->type->value)) }} contract
+                            &middot; {{ $contract->salaryGrade->name }}
+                            &middot; from {{ $contract->start_date->toFormattedDateString() }}
+                            @if ($contract->end_date) to {{ $contract->end_date->toFormattedDateString() }} @endif
+                        </p>
+                    @endif
+                </div>
+                @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
+                    <button wire:click="edit({{ $employee->id }})" class="text-xs font-semibold text-blue-600 hover:text-blue-500">
+                        Edit
+                    </button>
+                @endcan
+            </div>
+        @empty
+            <p class="px-5 py-10 text-center text-sm text-slate-400">No employees yet.</p>
+        @endforelse
+    </div>
+
     @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="text-base font-semibold text-slate-900">{{ $editingId ? 'Edit employee' : 'Add employee' }}</h2>
-            <form wire:submit="save" class="mt-4 space-y-4">
+        <x-modal name="employee-form" maxWidth="2xl">
+            <x-modal-header
+                :title="$editingId ? 'Edit Employee' : 'Add Employee'"
+                subtitle="Every employee has a contract and a salary grade from the moment they're created."
+            />
+            <form wire:submit="save" class="space-y-4">
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-600">Employee number</label>
@@ -168,52 +211,11 @@
                     </div>
                 @endunless
 
-                <div class="flex gap-2">
-                    <button type="submit" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
-                        {{ $editingId ? 'Save changes' : 'Add employee' }}
-                    </button>
-                    @if ($editingId)
-                        <button type="button" wire:click="cancel" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600">
-                            Cancel
-                        </button>
-                    @endif
+                <div class="flex justify-end gap-2 pt-2">
+                    <x-button type="button" variant="secondary" wire:click="cancel">Cancel</x-button>
+                    <x-button type="submit">{{ $editingId ? 'Save changes' : 'Add employee' }}</x-button>
                 </div>
             </form>
-        </div>
+        </x-modal>
     @endcan
-
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <h2 class="border-b border-slate-100 px-5 py-3 text-base font-semibold text-slate-900">Employees</h2>
-        @forelse ($this->employees as $employee)
-            @php($contract = $employee->currentContract())
-            <div wire:key="{{ $employee->id }}" class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4 last:border-b-0">
-                <div>
-                    <p class="text-sm font-semibold text-slate-900">
-                        {{ $employee->fullName() }}
-                        <span class="ml-1 text-xs font-normal text-slate-400">{{ $employee->employee_number }}</span>
-                    </p>
-                    <p class="mt-0.5 text-xs text-slate-500">
-                        {{ $employee->position?->title ?? 'No position' }}
-                        @if ($employee->department) &middot; {{ $employee->department->name }} @endif
-                        @if ($employee->dutyStation) &middot; {{ $employee->dutyStation->name }} @endif
-                    </p>
-                    @if ($contract)
-                        <p class="mt-0.5 text-xs text-slate-400">
-                            {{ ucwords(str_replace('_', ' ', $contract->type->value)) }} contract
-                            &middot; {{ $contract->salaryGrade->name }}
-                            &middot; from {{ $contract->start_date->toFormattedDateString() }}
-                            @if ($contract->end_date) to {{ $contract->end_date->toFormattedDateString() }} @endif
-                        </p>
-                    @endif
-                </div>
-                @can(\App\Support\Authorization\Permission::HrmOrgEdit->value)
-                    <button wire:click="edit({{ $employee->id }})" class="text-xs font-semibold text-blue-600 hover:text-blue-500">
-                        Edit
-                    </button>
-                @endcan
-            </div>
-        @empty
-            <p class="px-5 py-10 text-center text-sm text-slate-400">No employees yet.</p>
-        @endforelse
-    </div>
 </div>

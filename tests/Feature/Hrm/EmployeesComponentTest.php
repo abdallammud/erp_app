@@ -32,6 +32,39 @@ test('the employees page requires hrm.org.view', function () {
     $this->actingAs($this->hrAdmin)->get('/employees')->assertOk();
 });
 
+test('openCreate resets the form and opens the modal; save closes it', function () {
+    Livewire::actingAs($this->hrAdmin)
+        ->test(Employees::class)
+        ->set('firstName', 'stale value')
+        ->call('openCreate')
+        ->assertSet('firstName', '')
+        ->assertDispatched('open-modal', name: 'employee-form');
+
+    $grade = SalaryGrade::factory()->create();
+
+    Livewire::actingAs($this->hrAdmin)
+        ->test(Employees::class)
+        ->set('employeeNumber', 'EMP-777')
+        ->set('firstName', 'Amina')
+        ->set('lastName', 'Yusuf')
+        ->set('staffCategory', 'permanent')
+        ->set('hireDate', '2026-01-15')
+        ->set('contractType', 'fixed_term')
+        ->set('salaryGradeId', $grade->id)
+        ->set('contractStartDate', '2026-01-15')
+        ->call('save')
+        ->assertDispatched('close-modal', name: 'employee-form');
+
+    $employee = Employee::where('employee_number', 'EMP-777')->sole();
+
+    Livewire::actingAs($this->hrAdmin)
+        ->test(Employees::class)
+        ->call('edit', $employee->id)
+        ->assertDispatched('open-modal', name: 'employee-form')
+        ->call('cancel')
+        ->assertDispatched('close-modal', name: 'employee-form');
+});
+
 test('creating an employee also creates their first contract, entirely through the UI', function () {
     $grade = SalaryGrade::factory()->create(['name' => 'Grade P3']);
 
